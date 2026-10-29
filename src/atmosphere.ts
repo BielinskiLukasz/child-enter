@@ -1,9 +1,13 @@
-import { ANIMALS, PHASE_DURATION, type JourneyState } from "./game";
+import {
+  PHASE_DURATION,
+  type JourneyState,
+  type JourneySettings,
+} from "./game";
 
 export const WEATHER_TYPES = ["clear", "rain", "snow", "fog"] as const;
 export type Weather = (typeof WEATHER_TYPES)[number];
 export type TimeOfDay = "dawn" | "day" | "dusk" | "night";
-export type AtmosphereMode = "still" | "intro" | "dynamic";
+export type AtmosphereMode = "dynamic" | "override";
 export type InitialConditions = { hour: number; weather: Weather };
 export type RGB = [number, number, number];
 export type WeatherWeights = Record<Weather, number>;
@@ -50,6 +54,7 @@ function rgb(hex: string): RGB {
     parseInt(clean.slice(4, 6), 16),
   ];
 }
+
 export function mixColor(a: string, b: string, t: number): string {
   const from = rgb(a);
   const to = rgb(b);
@@ -62,8 +67,6 @@ export function mixColor(a: string, b: string, t: number): string {
     .join("")}`;
 }
 
-// The same colour values occur at midnight at both ends of the loop.
-// Interpolating each neighbouring stop makes every 24-hour wrap seamless.
 const SKY_STOPS = [
   { hour: 0, top: "#27374f", bottom: "#495e7a", night: 1 },
   { hour: 4.5, top: "#293950", bottom: "#526580", night: 1 },
@@ -78,7 +81,6 @@ const SKY_STOPS = [
   { hour: 24, top: "#27374f", bottom: "#495e7a", night: 1 },
 ];
 
-// One complete round is exactly three pickup legs plus the scenic return leg.
 const PICKUP_DURATION = (
   Object.keys(PHASE_DURATION) as (keyof typeof PHASE_DURATION)[]
 )
@@ -86,14 +88,15 @@ const PICKUP_DURATION = (
     ["departing", "travelling", "arriving", "boarding"].includes(phase),
   )
   .reduce((sum, phase) => sum + PHASE_DURATION[phase], 0);
+
 const TOUR_DURATION =
   PHASE_DURATION.departing +
   3 * PHASE_DURATION.touring +
   PHASE_DURATION.returning +
   PHASE_DURATION.unboarding;
-export const ROUND_DURATION = ANIMALS.length * PICKUP_DURATION + TOUR_DURATION;
 
-/** Chosen exactly once at startup, in memory only (no storage or requests). */
+export const ROUND_DURATION = 3 * PICKUP_DURATION + TOUR_DURATION;
+
 export function randomInitialConditions(
   random = Math.random,
 ): InitialConditions {
@@ -104,33 +107,34 @@ export function randomInitialConditions(
   };
 }
 
-/** Convert the existing phase clock to road distance, NOT wall-clock time. */
 export function journeyRoadProgress(
   journey: JourneyState,
   phaseFraction = 0,
 ): number {
   if (journey.phase === "waiting") {
-    return (journey.passengers * PICKUP_DURATION) / ROUND_DURATION;
+    return (journey.passengersCount * PICKUP_DURATION) / ROUND_DURATION;
   }
   const fraction = clamp(Number.isFinite(phaseFraction) ? phaseFraction : 0);
   const duration = PHASE_DURATION[journey.phase];
   let elapsed = 0;
   if (journey.isTour) {
-    elapsed = ANIMALS.length * PICKUP_DURATION;
+    elapsed = 3 * PICKUP_DURATION;
     const tourPhases = ["departing", "touring", "returning", "unboarding"];
     const index = tourPhases.indexOf(journey.phase);
-    if (index === 1)
+    if (index === 1) {
       elapsed +=
         PHASE_DURATION.departing + journey.tourIndex * PHASE_DURATION.touring;
-    if (index === 2)
+    }
+    if (index === 2) {
       elapsed += PHASE_DURATION.departing + 3 * PHASE_DURATION.touring;
+    }
     if (index === 3) elapsed += TOUR_DURATION - PHASE_DURATION.unboarding;
   } else {
     const pickupIndex =
       journey.phase === "departing"
-        ? journey.passengers
+        ? journey.passengersCount
         : journey.phase === "boarding"
-          ? journey.passengers - 1
+          ? journey.passengersCount - 1
           : journey.stop - 1;
     elapsed = pickupIndex * PICKUP_DURATION;
     const pickupPhases = ["departing", "travelling", "arriving", "boarding"];
@@ -146,7 +150,6 @@ export function weatherWeights(weather: Weather): WeatherWeights {
   return { clear: 0, rain: 0, snow: 0, fog: 0, [weather]: 1 };
 }
 
-/** Exact one-hot endpoint at each weather, with a smooth blend between them. */
 export function weatherAt(start: Weather, position: number): WeatherWeights {
   const index = WEATHER_TYPES.indexOf(start);
   const turn = position * WEATHER_TYPES.length;
@@ -197,37 +200,51 @@ function celestial(hour: number, rise: number, set: number) {
 }
 
 /**
- * A complete round = the three pickup legs plus the scenic trip home.
- * Round 1: fixed initial conditions.
- * Round 2: ease toward the next weather and half a day (one sunrise or sunset).
- * Round 3+: full weather cycle and full 24-hour loop per round, continuously.
- * At every integer boundary both branches sample the EXACT same point, so the
- * return to Artur's station never jumps back to the startup condition.
+ * Dynamic Atmosphere:
+ * Right from Journey 1 (and through all subsequent journeys), the weather and daylight
+ * progress smoothly along the route!
+ * Also respects parent overrides if configured.
  */
 export function sampleAtmosphere(
   initial: InitialConditions,
   completedJourneys: number,
   progress: number,
+  settings?: JourneySettings,
 ): AtmosphereSample {
   const p = clamp(progress);
   const round = Math.max(0, completedJourneys);
-  const mode: AtmosphereMode =
-    round === 0 ? "still" : round === 1 ? "intro" : "dynamic";
-  const eased = smoothstep(0, 1, p);
-  const weatherTurn =
-    mode === "still"
-      ? 0
-      : mode === "intro"
-        ? 0.25 * eased
-        : 0.25 + (round - 2) + p;
-  const dayTurn =
-    mode === "still"
-      ? 0
-      : mode === "intro"
-        ? 0.5 * eased
-        : 0.5 + (round - 2) + p;
-  const hour = wrap(initial.hour + dayTurn * 24, 24);
-  const weights = weatherAt(initial.weather, weatherTurn);
+
+  // Smooth continuous cycling right from session launch (Journey 1 onwards)
+  const totalTurns = round + p;
+  let hour = wrap(initial.hour + totalTurns * 24, 24);
+  let weights = weatherAt(initial.weather, totalTurns);
+
+  let mode: AtmosphereMode = "dynamic";
+
+  // Check parent overrides
+  if (settings && settings.timeOverride !== "auto") {
+    mode = "override";
+    switch (settings.timeOverride) {
+      case "day":
+        hour = 12;
+        break;
+      case "night":
+        hour = 1;
+        break;
+      case "dawn":
+        hour = 6;
+        break;
+      case "dusk":
+        hour = 19;
+        break;
+    }
+  }
+
+  if (settings && settings.weatherOverride !== "auto") {
+    mode = "override";
+    weights = weatherWeights(settings.weatherOverride);
+  }
+
   const sky = skyAt(hour);
   const day = 1 - sky.night;
   const cloudiness = clamp(
@@ -239,6 +256,7 @@ export function sampleAtmosphere(
     smoothstep(5.25, 7, hour) * (1 - smoothstep(18.5, 20.5, hour));
   const sun = celestial(hour, 6, 18);
   const moon = celestial(wrap(hour - 18, 24), 0, 12);
+
   return {
     hour,
     timeOfDay: timeOfDay(hour),
@@ -247,9 +265,10 @@ export function sampleAtmosphere(
     mode,
     skyTop: mixColor(sky.top, "#b7c4ce", cloudMix * (0.7 + day * 0.3)),
     skyBottom: mixColor(sky.bottom, "#c6d0d2", cloudMix),
-    ink: mixColor("#405b49", "#eee9d1", sky.night),
-    muted: mixColor("#89907b", "#bccacb", sky.night),
-    accent: mixColor("#9c7155", "#e8c4a4", sky.night),
+    // Keep crisp WCAG 2.1 AA contrast by switching sharply at twilight rather than mixing to mid-gray
+    ink: sky.night > 0.52 ? "#fdfbf2" : "#1e3325",
+    muted: sky.night > 0.52 ? "#d8e5e0" : "#3c5242",
+    accent: sky.night > 0.52 ? "#fedbb3" : "#854d29",
     ground: mixColor("#f6f3e8", "#465b78", sky.night),
     window: mixColor("#f7e8bb", "#ffd58f", sky.night),
     cloud: mixColor(

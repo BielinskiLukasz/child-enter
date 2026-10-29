@@ -4,6 +4,7 @@ import {
   randomInitialConditions,
   sampleAtmosphere,
   type AtmosphereSample,
+  type InitialConditions,
 } from "../atmosphere";
 import type { JourneyState } from "../game";
 import type { PhaseClock } from "./useJourneyClock";
@@ -13,7 +14,6 @@ const REDUCED_FRAME_INTERVAL = 200;
 const number = (value: number) => value.toFixed(4);
 const applied = new WeakMap<HTMLElement, Record<string, string>>();
 
-/** DOM-only rendering: no React updates or SVG-tree reconciliation on each frame. */
 export function paintAtmosphere(root: HTMLElement, sample: AtmosphereSample) {
   const { style } = root;
   const properties: Record<string, string> = {
@@ -26,7 +26,6 @@ export function paintAtmosphere(root: HTMLElement, sample: AtmosphereSample) {
     "--window": sample.window,
     "--cloud": sample.cloud,
     "--cloud-opacity": number(1 - sample.weights.fog * 0.3),
-
     "--sun-opacity": number(sample.sun.opacity),
     "--sun-x": `${sample.sun.x.toFixed(2)}px`,
     "--sun-y": `${sample.sun.y.toFixed(2)}px`,
@@ -40,12 +39,13 @@ export function paintAtmosphere(root: HTMLElement, sample: AtmosphereSample) {
     "--night-veil": number(sample.nightVeil),
     "--day-hour": number(sample.hour),
   };
+
   const previous = applied.get(root);
   for (const [property, value] of Object.entries(properties)) {
     if (previous?.[property] !== value) style.setProperty(property, value);
   }
   applied.set(root, properties);
-  // These are discrete, accessible descriptions, not per-frame live regions.
+
   const labels = {
     weather: sample.weather,
     timeOfDay: sample.timeOfDay,
@@ -72,8 +72,9 @@ export function paintAtmosphere(root: HTMLElement, sample: AtmosphereSample) {
       dusk: "zachód słońca",
       night: "noc",
     };
-    if (description)
+    if (description) {
       description.textContent = `${weatherNames[sample.weather]}. ${timeNames[sample.timeOfDay]}. Słońce, księżyc i gwiazdy zmieniają się powoli w czasie podróży.`;
+    }
   }
 }
 
@@ -81,7 +82,7 @@ export function useAtmosphere(
   journey: JourneyState,
   clock: RefObject<PhaseClock>,
   root: RefObject<HTMLElement | null>,
-) {
+): InitialConditions {
   const [initial] = useState(randomInitialConditions);
   const initialRef = useRef(initial);
 
@@ -96,6 +97,7 @@ export function useAtmosphere(
           initialRef.current,
           journey.journeys,
           journeyRoadProgress(journey, clock.current.read()),
+          journey.settings,
         ),
       );
     let frame = 0;
@@ -118,11 +120,7 @@ export function useAtmosphere(
       cancelAnimationFrame(frame);
       frame = 0;
       draw();
-      if (
-        !document.hidden &&
-        journey.phase !== "waiting" &&
-        journey.journeys > 0
-      ) {
+      if (!document.hidden && journey.phase !== "waiting") {
         lastPaint = -Infinity;
         frame = requestAnimationFrame(tick);
       }
@@ -138,10 +136,11 @@ export function useAtmosphere(
   }, [
     journey.phase,
     journey.stop,
-    journey.passengers,
+    journey.passengersCount,
     journey.tourIndex,
     journey.journeys,
     journey.isTour,
+    journey.settings,
     clock,
     root,
   ]);

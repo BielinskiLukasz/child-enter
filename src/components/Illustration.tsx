@@ -1,12 +1,12 @@
 import type { CSSProperties } from "react";
-import { CelestialSky, WeatherEffects } from "./Atmosphere";
 import {
-  ANIMALS,
-  STOPS,
+  ALL_ANIMALS,
+  ALL_LOCATIONS,
   type AnimalKind,
   type JourneyState,
   type Landscape,
 } from "../game";
+import { CelestialSky, WeatherEffects } from "./Atmosphere";
 
 function Cloud({
   x,
@@ -105,6 +105,132 @@ function Tree({
         strokeLinecap="round"
         opacity=".35"
       />
+    </g>
+  );
+}
+
+function BirchTree({
+  x,
+  y,
+  scale = 1,
+}: {
+  x: number;
+  y: number;
+  scale?: number;
+}) {
+  return (
+    <g transform={`translate(${x} ${y}) scale(${scale})`}>
+      {/* Crown */}
+      <path
+        d="M0-195c-38 0-65 45-68 85-3 42 22 75 68 75s71-33 68-75c-3-40-30-85-68-85Z"
+        fill="#c8d697"
+      />
+      <path
+        d="M-15-175c-25 0-48 30-45 60 3 30 22 55 45 55s45-25 45-55c0-30-20-60-45-60Z"
+        fill="#dfd68a"
+        opacity=".65"
+      />
+      {/* White birch trunk */}
+      <path
+        d="M-5-110L-3 10M5-110L3 10"
+        stroke="#fbfaf5"
+        strokeWidth="8"
+        strokeLinecap="round"
+      />
+      {/* Black bark notches */}
+      <path
+        d="M-7-80h8M-5-50h7M-8-20h9M-6 0h7"
+        stroke="#596355"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+      />
+      {/* Leaves details */}
+      <circle cx="-25" cy="-120" r="4" fill="#f7f2b5" />
+      <circle cx="28" cy="-135" r="5" fill="#f7f2b5" />
+      <circle cx="5" cy="-165" r="4.5" fill="#f7f2b5" />
+    </g>
+  );
+}
+
+function Windmill({
+  x,
+  y,
+  scale = 1,
+}: {
+  x: number;
+  y: number;
+  scale?: number;
+}) {
+  return (
+    <g transform={`translate(${x} ${y}) scale(${scale})`}>
+      <path d="M-28 0L-16-90h32L28 0Z" fill="#cfbba0" />
+      <path d="M-22-90L0-118l22 28Z" fill="#a47863" />
+      <circle cx="0" cy="-65" r="6" fill="#67735f" />
+      {/* Sails */}
+      <g stroke="#7b6754" strokeWidth="3" strokeLinecap="round">
+        <path d="M0-65L0-125M0-65L0-5M0-65L-60-65M0-65L60-65" />
+        <rect
+          x="3"
+          y="-120"
+          width="12"
+          height="45"
+          fill="#f5eedb"
+          opacity=".8"
+        />
+        <rect
+          x="-15"
+          y="-50"
+          width="12"
+          height="45"
+          fill="#f5eedb"
+          opacity=".8"
+        />
+        <rect
+          x="-55"
+          y="-77"
+          width="45"
+          height="12"
+          fill="#f5eedb"
+          opacity=".8"
+        />
+        <rect
+          x="10"
+          y="-60"
+          width="45"
+          height="12"
+          fill="#f5eedb"
+          opacity=".8"
+        />
+      </g>
+    </g>
+  );
+}
+
+function Sailboat({
+  x,
+  y,
+  scale = 1,
+}: {
+  x: number;
+  y: number;
+  scale?: number;
+}) {
+  return (
+    <g transform={`translate(${x} ${y}) scale(${scale})`}>
+      {/* Boat hull */}
+      <path d="M-35 0C-28 16 28 16 35 0Z" fill="#ba8063" />
+      <path d="M-33 0h66" stroke="#94624a" strokeWidth="2.5" />
+      {/* Mast & Sails */}
+      <path
+        d="M0 0V-48"
+        stroke="#715b49"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+      <path d="M2-44L28-8H2Z" fill="#f7f2dc" />
+      <path d="M-2-40L-22-10H-2Z" fill="#dfbe97" />
+      {/* Water ripple */}
+      <ellipse cx="0" cy="8" rx="42" ry="4" fill="#a8c7c9" opacity=".5" />
     </g>
   );
 }
@@ -301,6 +427,103 @@ function Scenery({
           <Pine x={1230} y={399} scale={0.85} color="#8ba28a" />
         </>
       )}
+      {landscape === "river" && (
+        <>
+          {/* Gentle distant water hills */}
+          <path
+            d="M-100 330C160 250 380 280 600 310s490-80 750-30 290 20 400 30v290H-100Z"
+            fill="#c0d4cf"
+          />
+          {/* River water body */}
+          <path
+            d="M-100 375c320-30 550 40 820 15s520-45 780-10 200 20 300 20v240H-100Z"
+            fill="#a6c8c7"
+          />
+          <path
+            d="M0 405q400-25 800 10t800-20M0 435q400 20 800-15t800 15"
+            stroke="#d4e8e5"
+            strokeWidth="5"
+            fill="none"
+            opacity=".65"
+          />
+          {/* River bank, trees & boat */}
+          <Sailboat x={1120} y={380} scale={0.75} />
+          <Tree x={880} y={360} scale={0.65} color="#89ab92" variant={1} />
+          <Tree x={1320} y={365} scale={0.72} color="#7fa38a" />
+          {/* Reeds */}
+          <g stroke="#6e8a71" strokeWidth="3" strokeLinecap="round">
+            <path d="M720 410l-6-35M725 410l2-40M731 410l8-32M1240 405l-5-30M1246 405l3-35" />
+          </g>
+          <Birds x={860} y={150} scale={0.8} />
+        </>
+      )}
+      {landscape === "birch" && (
+        <>
+          <path
+            d="M-100 330c250-70 500-20 740 20s480-60 720-30 280 20 340 30v290H-100Z"
+            fill="#cfdab7"
+          />
+          <path
+            d="M-100 390c290-40 540 10 780-15s480-40 720-10 240 25 300 25v250H-100Z"
+            fill="#bac99f"
+          />
+          {/* Birch grove */}
+          <BirchTree x={760} y={365} scale={0.65} />
+          <BirchTree x={870} y={360} scale={0.55} />
+          <BirchTree x={990} y={375} scale={0.75} />
+          <BirchTree x={1120} y={360} scale={0.6} />
+          <BirchTree x={1260} y={370} scale={0.8} />
+          <BirchTree x={1390} y={365} scale={0.68} />
+          <Birds x={820} y={145} scale={0.75} />
+        </>
+      )}
+      {landscape === "snow_village" && (
+        <>
+          {/* Snow covered hills */}
+          <path
+            d="M-100 320c240-60 480 30 720 0s480-60 720-20 280 25 360 30v310H-100Z"
+            fill="#dbe4e6"
+          />
+          <path
+            d="M-100 380c280-40 520 20 760-10s480-40 720 0 240 20 320 20v250H-100Z"
+            fill="#eaf0f2"
+          />
+          {/* Frosted pines & snowy cottage */}
+          <Pine x={820} y={360} scale={0.75} color="#87a098" />
+          <Pine x={930} y={365} scale={0.55} color="#9cb5ad" />
+          <Cottage x={1080} y={345} scale={0.62} color="#e5ded2" />
+          <Pine x={1240} y={360} scale={0.82} color="#789189" />
+          <Pine x={1370} y={375} scale={0.68} color="#8ba59d" />
+          {/* Soft snowdrifts on ground */}
+          <ellipse cx="1080" cy="350" rx="95" ry="12" fill="#f8fcfe" />
+        </>
+      )}
+      {landscape === "meadow" && (
+        <>
+          <path
+            d="M-100 325c260-60 520 20 760 0s460-60 700-15 280 20 340 25v305H-100Z"
+            fill="#d4dfb9"
+          />
+          <path
+            d="M-100 385c270-40 520 15 760-15s470-35 710 0 260 20 330 20v250H-100Z"
+            fill="#c0ce9e"
+          />
+          <Windmill x={1080} y={350} scale={0.62} />
+          <Tree x={860} y={365} scale={0.6} color="#96ae84" />
+          <Tree x={1320} y={370} scale={0.68} color="#8aa277" />
+          {/* Wildflowers */}
+          {[920, 960, 1000, 1180, 1220, 1260].map((fx, i) => (
+            <circle
+              key={fx}
+              cx={fx}
+              cy={390 + (i % 3) * 6}
+              r={3.5}
+              fill={i % 2 === 0 ? "#f9dd85" : "#e8a4a4"}
+            />
+          ))}
+          <Birds x={800} y={140} scale={0.75} />
+        </>
+      )}
     </g>
   );
 }
@@ -314,10 +537,25 @@ function Animal({
   conductor?: boolean;
   waving?: boolean;
 }) {
-  const fur =
-    kind === "rabbit" ? "#f1e9d5" : kind === "fox" ? "#c78a58" : "#b79368";
+  const furColors: Record<AnimalKind, string> = {
+    rabbit: "#f3ebd7",
+    fox: "#c77f4e",
+    bear: "#b08557",
+    hedgehog: "#9c8874",
+    owl: "#9d8e7c",
+    squirrel: "#cf7a43",
+    cat: "#e2bc8d",
+    dog: "#cca16e",
+    frog: "#8dae76",
+    badger: "#585e56",
+    deer: "#b88a5e",
+  };
+
+  const fur = furColors[kind] || "#b08557";
+
   return (
     <g className={`animal animal--${kind}`}>
+      {/* Body */}
       <ellipse cx="0" cy="55" rx="27" ry="29" fill={fur} />
       <ellipse cx="-15" cy="77" rx="12" ry="7" fill={fur} />
       <ellipse cx="15" cy="77" rx="12" ry="7" fill={fur} />
@@ -329,6 +567,8 @@ function Animal({
         transform="rotate(22 -29 45)"
         fill={fur}
       />
+
+      {/* Waving arm */}
       <g className={waving ? "waving-paw" : ""}>
         <path
           d="M22 46q23-8 20-24"
@@ -340,11 +580,13 @@ function Animal({
         <ellipse cx="42" cy="20" rx="8" ry="10" fill={fur} />
         <path
           d="m40 15 1 4m4-4v4"
-          stroke="#e1c6a8"
+          stroke="#dfc5aa"
           strokeWidth="1.5"
           strokeLinecap="round"
         />
       </g>
+
+      {/* Animal Specific Features & Head */}
       {kind === "rabbit" && (
         <>
           <ellipse
@@ -382,6 +624,7 @@ function Animal({
           <ellipse cy="-1" rx="32" ry="30" fill={fur} />
         </>
       )}
+
       {kind === "fox" && (
         <>
           <path
@@ -399,6 +642,7 @@ function Animal({
           />
         </>
       )}
+
       {kind === "bear" && (
         <>
           <circle cx="-27" cy="-27" r="14" fill={fur} />
@@ -409,32 +653,213 @@ function Animal({
           <ellipse cy="12" rx="18" ry="14" fill="#dccaab" />
         </>
       )}
-      <g fill="#3f4d40">
-        <ellipse cx="-11" cy="-4" rx="2.5" ry="3" />
-        <ellipse cx="11" cy="-4" rx="2.5" ry="3" />
-      </g>
-      <ellipse cx="-20" cy="7" rx="6" ry="3.5" fill="#cf9f89" opacity=".55" />
-      <ellipse cx="20" cy="7" rx="6" ry="3.5" fill="#cf9f89" opacity=".55" />
-      <path d="M-4 7q4-3 8 0 0 6-4 6-4 0-4-6" fill="#495043" />
-      <path
-        d="M0 13v4m-7-1q3 6 7 1 4 5 7-1"
-        stroke="#655c4b"
-        strokeWidth="1.5"
-        fill="none"
-        strokeLinecap="round"
-      />
+
+      {kind === "hedgehog" && (
+        <>
+          {/* Quills fan */}
+          <path
+            d="M-38-10C-42-38 0-48 38-10c12 25-10 45-38 45s-50-20-38-45Z"
+            fill="#6d5845"
+          />
+          <path
+            d="M-30-22L-38-35M-15-32L-18-48M5-35L8-50M25-30L35-42M35-15L48-22"
+            stroke="#594634"
+            strokeWidth="4"
+            strokeLinecap="round"
+          />
+          {/* Face */}
+          <ellipse cy="-2" rx="28" ry="26" fill={fur} />
+          <ellipse cy="8" rx="14" ry="10" fill="#edd9bd" />
+        </>
+      )}
+
+      {kind === "owl" && (
+        <>
+          {/* Ear tufts */}
+          <path d="M-24-32L-18-52L-4-32ZM24-32L18-52L4-32Z" fill={fur} />
+          <circle cy="-2" r="33" fill={fur} />
+          {/* Big owl eye patches */}
+          <circle cx="-13" cy="-6" r="15" fill="#f5ede0" />
+          <circle cx="13" cy="-6" r="15" fill="#f5ede0" />
+          <circle cx="-13" cy="-6" r="5" fill="#3f4d40" />
+          <circle cx="13" cy="-6" r="5" fill="#3f4d40" />
+          <circle cx="-11" cy="-8" r="1.5" fill="#fff" />
+          <circle cx="15" cy="-8" r="1.5" fill="#fff" />
+          {/* Beak */}
+          <polygon points="0,0 -4,-8 4,-8" fill="#d8964e" />
+        </>
+      )}
+
+      {kind === "squirrel" && (
+        <>
+          {/* Pointy ears with tufts */}
+          <polygon points="-22,-20 -28,-48 -10,-28" fill={fur} />
+          <polygon points="22,-20 28,-48 10,-28" fill={fur} />
+          <path
+            d="M-28-48L-29-56M28-48L29-56"
+            stroke="#9e4c19"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+          <ellipse cy="-1" rx="31" ry="29" fill={fur} />
+          <ellipse cy="11" rx="16" ry="12" fill="#fae8d3" />
+        </>
+      )}
+
+      {kind === "cat" && (
+        <>
+          {/* Triangular cat ears */}
+          <polygon points="-27,-15 -25,-44 -5,-22" fill={fur} />
+          <polygon points="27,-15 25,-44 5,-22" fill={fur} />
+          <polygon points="-23,-18 -22,-38 -8,-24" fill="#deb09d" />
+          <polygon points="23,-18 22,-38 8,-24" fill="#deb09d" />
+          <ellipse cy="-1" rx="31" ry="28" fill={fur} />
+          <ellipse cy="10" rx="15" ry="11" fill="#fcedda" />
+          {/* Whiskers */}
+          <path
+            d="M-14 8h-18M-14 12h-16M14 8h18M14 12h16"
+            stroke="#675d4e"
+            strokeWidth="1.2"
+            strokeLinecap="round"
+          />
+        </>
+      )}
+
+      {kind === "dog" && (
+        <>
+          {/* Floppy dog ears */}
+          <ellipse
+            cx="-28"
+            cy="-8"
+            rx="10"
+            ry="22"
+            transform="rotate(-15 -28 -8)"
+            fill="#a87f50"
+          />
+          <ellipse
+            cx="28"
+            cy="-8"
+            rx="10"
+            ry="22"
+            transform="rotate(15 28 -8)"
+            fill="#a87f50"
+          />
+          <ellipse cy="-1" rx="32" ry="29" fill={fur} />
+          <ellipse cy="12" rx="17" ry="13" fill="#f0dbbe" />
+        </>
+      )}
+
+      {kind === "frog" && (
+        <>
+          {/* Round frog eye bumps */}
+          <circle cx="-16" cy="-25" r="14" fill={fur} />
+          <circle cx="16" cy="-25" r="14" fill={fur} />
+          <circle cx="-16" cy="-25" r="7" fill="#f2f5de" />
+          <circle cx="16" cy="-25" r="7" fill="#f2f5de" />
+          <ellipse cy="-2" rx="34" ry="26" fill={fur} />
+          <ellipse cy="8" rx="20" ry="12" fill="#d9eabf" />
+        </>
+      )}
+
+      {kind === "badger" && (
+        <>
+          <circle cx="-24" cy="-22" r="11" fill="#3f453d" />
+          <circle cx="24" cy="-22" r="11" fill="#3f453d" />
+          <circle cy="-1" r="32" fill="#f0ede6" />
+          {/* Badger dark eye stripes */}
+          <path
+            d="M-19-24L-15 15h9L-8-24ZM19-24L15 15h-9L8-24Z"
+            fill="#383d36"
+            opacity=".95"
+          />
+          <ellipse cy="11" rx="14" ry="10" fill="#f0ede6" />
+        </>
+      )}
+
+      {kind === "deer" && (
+        <>
+          {/* Cute deer antlers */}
+          <path
+            d="M-15-28L-22-48M-22-42L-30-48M15-28L22-48M22-42L30-48"
+            stroke="#7e5d3c"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+          {/* Ears */}
+          <ellipse
+            cx="-24"
+            cy="-18"
+            rx="8"
+            ry="17"
+            transform="rotate(-35 -24 -18)"
+            fill={fur}
+          />
+          <ellipse
+            cx="24"
+            cy="-18"
+            rx="8"
+            ry="17"
+            transform="rotate(35 24 -18)"
+            fill={fur}
+          />
+          <ellipse cy="-1" rx="30" ry="28" fill={fur} />
+          <ellipse cy="11" rx="15" ry="12" fill="#f5e1cb" />
+          {/* White spots */}
+          <circle cx="-12" cy="-12" r="2" fill="#fff" opacity=".8" />
+          <circle cx="12" cy="-12" r="2" fill="#fff" opacity=".8" />
+        </>
+      )}
+
+      {/* Eyes & Nose (for non-owl animals) */}
+      {kind !== "owl" && (
+        <>
+          <g fill="#3f4d40">
+            <ellipse cx="-11" cy="-4" rx="2.5" ry="3" />
+            <ellipse cx="11" cy="-4" rx="2.5" ry="3" />
+          </g>
+          {/* Cute rosy cheeks */}
+          <ellipse
+            cx="-20"
+            cy="7"
+            rx="6"
+            ry="3.5"
+            fill="#cf9f89"
+            opacity=".55"
+          />
+          <ellipse
+            cx="20"
+            cy="7"
+            rx="6"
+            ry="3.5"
+            fill="#cf9f89"
+            opacity=".55"
+          />
+          {/* Nose */}
+          <path d="M-4 7q4-3 8 0 0 6-4 6-4 0-4-6" fill="#495043" />
+          {/* Mouth */}
+          <path
+            d="M0 13v4m-7-1q3 6 7 1 4 5 7-1"
+            stroke="#655c4b"
+            strokeWidth="1.5"
+            fill="none"
+            strokeLinecap="round"
+          />
+        </>
+      )}
+
+      {/* Clothes / Scarf */}
       <path
         d="M-23 28q24 9 46 0l-2 11q-21 6-42 0Z"
         fill={
-          kind === "rabbit" ? "#a3b8a1" : kind === "fox" ? "#91aaa5" : "#bf8869"
+          kind === "rabbit" || kind === "frog"
+            ? "#a3b8a1"
+            : kind === "fox" || kind === "squirrel"
+              ? "#799fa3"
+              : "#bf8869"
         }
       />
-      <path
-        d="m12 35 7 19 9-5-9-17"
-        fill={
-          kind === "rabbit" ? "#a3b8a1" : kind === "fox" ? "#91aaa5" : "#bf8869"
-        }
-      />
+
+      {/* Conductor Cap (if driver) */}
       {conductor && (
         <>
           <path d="M-31-29q0-25 31-25t31 25Z" fill="#4e7163" />
@@ -490,9 +915,12 @@ function Carriage({
     { body: "#a5bbae", shade: "#829f8d", roof: "#526d5d" },
     { body: "#d4a38c", shade: "#b98672", roof: "#65765d" },
   ][index];
-  const onboard = index < journey.passengers;
+
+  const onboard = index < journey.passengersCount;
   const justBoarded =
-    journey.phase === "boarding" && index === journey.passengers - 1;
+    journey.phase === "boarding" && index === journey.passengersCount - 1;
+  const passengerKind = journey.plan.passengers[index] ?? "rabbit";
+
   return (
     <g transform={`translate(${x} 0)`}>
       <defs>
@@ -517,10 +945,12 @@ function Carriage({
             <g
               className={`passenger ${justBoarded ? "passenger--boarding" : ""} ${journey.phase === "unboarding" ? "passenger--leaving" : ""}`}
               style={
-                { "--passenger-delay": `${index * 0.3}s` } as CSSProperties
+                {
+                  "--passenger-delay": `${index * 0.3}s`,
+                } as CSSProperties
               }
             >
-              <Animal kind={ANIMALS[index].kind} />
+              <Animal kind={passengerKind} />
             </g>
           </g>
         )}
@@ -586,7 +1016,7 @@ function Carriage({
   );
 }
 
-function Locomotive() {
+function Locomotive({ driver }: { driver: AnimalKind }) {
   return (
     <g className="locomotive">
       <g className="steam" fill="#fffcf3">
@@ -639,7 +1069,7 @@ function Locomotive() {
       </defs>
       <g clipPath="url(#driver-window)">
         <g transform="translate(680 388) scale(.65)">
-          <Animal kind="bear" conductor waving={false} />
+          <Animal kind={driver} conductor waving={false} />
         </g>
       </g>
       <path
@@ -705,10 +1135,18 @@ function Locomotive() {
 function Station({ journey }: { journey: JourneyState }) {
   const { phase, stop } = journey;
   if (phase === "travelling" || phase === "touring") return null;
+
   const arriving = phase === "arriving" || phase === "returning";
   const departing = phase === "departing";
-  const roof = ["#ad8065", "#7a9475", "#bc8b69", "#8e8470"][stop];
-  const walls = ["#e9d6b0", "#d8d7b5", "#e8cf9e", "#cbb995"][stop];
+
+  const roofColors = ["#ad8065", "#7a9475", "#bc8b69", "#8e8470"];
+  const wallColors = ["#e9d6b0", "#d8d7b5", "#e8cf9e", "#cbb995"];
+
+  const roof = roofColors[stop % roofColors.length];
+  const walls = wallColors[stop % wallColors.length];
+  const stopInfo = journey.plan.stops[stop] ?? ALL_LOCATIONS.home;
+  const waitingPassenger = stop > 0 ? journey.plan.passengers[stop - 1] : null;
+
   return (
     <g
       key={`${stop}-${departing ? "depart" : "current"}`}
@@ -798,7 +1236,7 @@ function Station({ journey }: { journey: JourneyState }) {
         fontWeight="500"
         letterSpacing="1.1"
       >
-        {STOPS[stop].name.toLocaleUpperCase("pl")}
+        {stopInfo.name.toLocaleUpperCase("pl")}
       </text>
       <circle
         cx="267"
@@ -845,7 +1283,7 @@ function Station({ journey }: { journey: JourneyState }) {
         stroke="#7e936a"
         strokeWidth="1.5"
       />
-      {stop > 0 && (phase === "arriving" || phase === "boarding") && (
+      {waitingPassenger && (phase === "arriving" || phase === "boarding") && (
         <g transform="translate(402 422) scale(.48)">
           <g
             className={
@@ -854,7 +1292,7 @@ function Station({ journey }: { journey: JourneyState }) {
                 : "platform-friend"
             }
           >
-            <Animal kind={ANIMALS[stop - 1].kind} />
+            <Animal kind={waitingPassenger} />
           </g>
         </g>
       )}
@@ -924,6 +1362,9 @@ export function Illustration({
   journey: JourneyState;
   landscape: Landscape;
 }) {
+  const currentSt = journey.plan.stops[journey.stop] ?? ALL_LOCATIONS.home;
+  const driverAnimal = ALL_ANIMALS[journey.plan.driver];
+
   return (
     <svg
       className="world-illustration"
@@ -932,11 +1373,10 @@ export function Illustration({
       role="img"
       aria-labelledby="scene-title scene-description sky-description"
     >
-      <title id="scene-title">{`Ma\u0142y poci\u0105g Artura: ${STOPS[journey.stop].name}`}</title>
+      <title id="scene-title">{`Mały pociąg Artura: ${currentSt.name}. Maszynista: ${driverAnimal.name}`}</title>
       <desc id="scene-description">
-        Pastelowa lokomotywa i trzy kolorowe wagoniki w spokojnym krajobrazie.
-        Na kolejnych stacjach do poci&#261;gu wsiadaj&#261; kr&oacute;liczek,
-        lisek i mi&#347;.
+        Pastelowa lokomotywa prowadzona przez maszynistę {driverAnimal.name} i
+        trzy kolorowe wagoniki. W podróży towarzyszą przyjaciele zwierzątka.
       </desc>
       <desc id="sky-description">
         Pogoda i pora dnia otulają spokojną podróż.
@@ -960,6 +1400,13 @@ export function Illustration({
         <Scenery landscape="forest" active={landscape === "forest"} />
         <Scenery landscape="village" active={landscape === "village"} />
         <Scenery landscape="mountains" active={landscape === "mountains"} />
+        <Scenery landscape="river" active={landscape === "river"} />
+        <Scenery landscape="birch" active={landscape === "birch"} />
+        <Scenery
+          landscape="snow_village"
+          active={landscape === "snow_village"}
+        />
+        <Scenery landscape="meadow" active={landscape === "meadow"} />
       </g>
       <path
         d="M-100 430c268-51 403-12 676-14s440-47 683-13 309 22 441-5v242H-100Z"
@@ -1012,7 +1459,7 @@ export function Illustration({
         {[2, 1, 0].map((index) => (
           <Carriage key={index} index={index} journey={journey} />
         ))}
-        <Locomotive />
+        <Locomotive driver={journey.plan.driver} />
       </g>
       <MeadowDetails />
       <WeatherEffects />

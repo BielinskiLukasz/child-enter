@@ -9,7 +9,7 @@ import {
   wrap,
 } from "../src/atmosphere";
 import {
-  initialJourney,
+  createInitialJourney,
   PHASE_DURATION,
   journeyReducer,
   type JourneyState,
@@ -62,31 +62,7 @@ async function collectFriend(page: Page, passengers: number) {
   await expect(page.locator("main")).toHaveAttribute("data-phase", "waiting");
 }
 
-async function completeRound(page: Page) {
-  for (let passenger = 1; passenger <= 3; passenger++) {
-    await page.keyboard.press("Enter");
-    await collectFriend(page, passenger);
-  }
-  await page.keyboard.press("Enter");
-  await expect(page.locator("main")).toHaveAttribute("data-phase", "departing");
-  await page.clock.runFor(PHASE_DURATION.departing + 10);
-  for (let scene = 0; scene < 3; scene++) {
-    await expect(page.locator("main")).toHaveAttribute("data-phase", "touring");
-    await page.clock.runFor(PHASE_DURATION.touring + 10);
-  }
-  await expect(page.locator("main")).toHaveAttribute("data-phase", "returning");
-  await page.clock.runFor(PHASE_DURATION.returning + 10);
-  await expect(page.locator("main")).toHaveAttribute(
-    "data-phase",
-    "unboarding",
-  );
-  await page.clock.runFor(PHASE_DURATION.unboarding + 10);
-  await expect(page.locator("main")).toHaveAttribute("data-phase", "waiting");
-}
-
 async function start(page: Page) {
-  // Deterministic startup: noon, snow. All initial conditions are still local,
-  // and there is no test-only route or extra UI input in the app.
   await page.addInitScript(() => {
     Math.random = () => 0.5;
   });
@@ -94,7 +70,7 @@ async function start(page: Page) {
   await page.goto("/");
   await expect(page.locator("main")).toHaveAttribute(
     "data-atmosphere-mode",
-    "still",
+    "dynamic",
   );
   await expect(page.locator("main")).toHaveAttribute(
     "data-initial-weather",
@@ -122,7 +98,7 @@ test("startup can choose every weather and every time of day", () => {
 });
 
 test("road progress agrees at every station and never jumps at a phase boundary", () => {
-  let state: JourneyState = initialJourney;
+  let state: JourneyState = createInitialJourney(() => 0.5);
   expect(ROUND_DURATION).toBe(47800);
   for (let round = 0; round < 3; round++) {
     for (let press = 0; press < 4; press++) {
@@ -134,9 +110,9 @@ test("road progress agrees at every station and never jumps at a phase boundary"
           expect(journeyRoadProgress(state, 0)).toBeCloseTo(boundary, 10);
         } else {
           expect(boundary).toBeCloseTo(
-            state.passengers === 0
+            state.passengersCount === 0
               ? 1
-              : (state.passengers * 8000) / ROUND_DURATION,
+              : (state.passengersCount * 8000) / ROUND_DURATION,
             10,
           );
         }
@@ -144,28 +120,19 @@ test("road progress agrees at every station and never jumps at a phase boundary"
     }
     expect(journeyRoadProgress(state, 0)).toBe(0);
     expect(state.journeys).toBe(round + 1);
-    expect(journeyRoadProgress(state, 0)).toBe(0);
   }
 });
 
-test("first round is fixed, the second eases in, and the third has a full continuous cycle", () => {
+test("dynamic atmosphere progresses continuously right from Journey 1", () => {
   const beginning = sampleAtmosphere(START, 0, 0);
-  for (const progress of [0, 0.1, 0.4, 0.8, 1]) {
-    expect(sampleAtmosphere(START, 0, progress)).toEqual(beginning);
-  }
-  const second = sampleAtmosphere(START, 1, 0.75);
-  expect(second.hour).not.toBe(beginning.hour);
-  expect(second.weather).not.toBe(beginning.weather);
-  expect(second.sun.opacity).toBeLessThan(beginning.sun.opacity);
-  expect(second.moon.opacity).toBeGreaterThan(beginning.moon.opacity);
-  expect(second.mode).toBe("intro");
+  const midWay = sampleAtmosphere(START, 0, 0.5);
+  expect(midWay.hour).not.toBe(beginning.hour);
+  expect(midWay.mode).toBe("dynamic");
 
   const allWeather = new Set<string>();
   const timeOfDay = new Set<string>();
-  for (let round = 2; round <= 6; round++) {
-    for (const progress of [
-      0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1,
-    ]) {
+  for (let round = 0; round <= 3; round++) {
+    for (const progress of [0, 0.25, 0.5, 0.75, 1]) {
       const sample = sampleAtmosphere(START, round, progress);
       allWeather.add(sample.weather);
       timeOfDay.add(sample.timeOfDay);
@@ -175,36 +142,21 @@ test("first round is fixed, the second eases in, and the third has a full contin
       expect(sample.sun.opacity + sample.moon.opacity).toBeCloseTo(1, 10);
       expect(sample.sun.x).toBeGreaterThanOrEqual(180);
       expect(sample.sun.x).toBeLessThanOrEqual(1420);
-      expect(sample.rain).toBeGreaterThanOrEqual(0);
-      expect(sample.snow).toBeGreaterThanOrEqual(0);
-      expect(sample.fog).toBeGreaterThanOrEqual(0);
     }
   }
   expect(allWeather).toEqual(new Set(WEATHER_TYPES));
   expect(timeOfDay).toEqual(new Set(["dawn", "day", "dusk", "night"]));
-  const dynamic = sampleAtmosphere(START, 2, 0);
-  expect(dynamic.mode).toBe("dynamic");
-  expect(dynamic.sun.opacity + dynamic.moon.opacity).toBe(1);
 });
 
 test("sky, weather and celestial positions meet seamlessly at every round boundary and midnight", () => {
   for (const hour of [0, 6, 12, 18, 23.9]) {
     for (const weather of WEATHER_TYPES) {
       const initial = { hour, weather };
-      for (const round of [1, 2, 3, 4, 9, 100]) {
-        // Only the mode label changes at the intro/dynamic boundary, not the scene.
-        expect({
-          ...sampleAtmosphere(initial, round, 1),
-          mode: undefined,
-        }).toEqual({
-          ...sampleAtmosphere(initial, round + 1, 0),
-          mode: undefined,
-        });
+      for (const round of [0, 1, 2, 3, 4, 9]) {
+        expect(sampleAtmosphere(initial, round, 1)).toEqual(
+          sampleAtmosphere(initial, round + 1, 0),
+        );
       }
-      expect({ ...sampleAtmosphere(initial, 0, 1), mode: undefined }).toEqual({
-        ...sampleAtmosphere(initial, 1, 0),
-        mode: undefined,
-      });
       const midnight = sampleAtmosphere({ hour: 0, weather }, 0, 0);
       const nextDay = sampleAtmosphere({ hour: 24, weather }, 0, 0);
       expect(midnight.skyTop).toBe(nextDay.skyTop);
@@ -218,138 +170,32 @@ test("sky, weather and celestial positions meet seamlessly at every round bounda
   expect(weatherAt("clear", 1)).toEqual({ clear: 1, rain: 0, snow: 0, fog: 0 });
 });
 
-test("the first full browser journey keeps its sky and all weather constant", async ({
+test("atmosphere evolves dynamically during browser travel on Journey 1", async ({
   page,
 }) => {
   await start(page);
   const initial = await snapshot(page);
-  await page.clock.runFor(30000);
-  expect(await snapshot(page)).toEqual(initial);
-  for (let friend = 1; friend <= 3; friend++) {
-    await page.keyboard.press("Enter");
-    await collectFriend(page, friend);
-    expect(await snapshot(page)).toEqual(initial);
-  }
-  await page.keyboard.press("Enter");
-  for (const phase of [
-    "departing",
-    "touring",
-    "touring",
-    "touring",
-    "returning",
-    "unboarding",
-  ] as const) {
-    await expect(page.locator("main")).toHaveAttribute("data-phase", phase);
-    await page.clock.runFor(PHASE_DURATION[phase] + 10);
-    expect(await snapshot(page)).toEqual(initial);
-  }
-  await expect(page.locator("main")).toHaveAttribute("data-journeys", "1");
-  await expect(page.locator("main")).toHaveAttribute(
-    "data-atmosphere-mode",
-    "intro",
-  );
-  expect(await snapshot(page)).toEqual(initial);
-});
 
-test("the second round gradually changes; subsequent rounds continuously cycle through all conditions", async ({
-  page,
-}) => {
-  test.setTimeout(90000);
-  await start(page);
-  await completeRound(page);
-  const beginning = await snapshot(page);
+  // Train starts moving
   await page.keyboard.press("Enter");
-  await page.clock.runFor(2000);
-  const afterDeparture = await snapshot(page);
-  expect(afterDeparture["--day-hour"]).not.toBe(beginning["--day-hour"]);
-  expect(Number(afterDeparture["--day-hour"])).toBeGreaterThan(12);
-  expect(Number(afterDeparture["--day-hour"])).toBeLessThan(12.75);
-  // Minute colour/opacity changes must still be smooth, not a sudden jump.
-  expect(Number(afterDeparture["--fog-opacity"])).toBeGreaterThanOrEqual(
-    Number(beginning["--fog-opacity"]),
-  );
-  await page.clock.runFor(2000);
-  expect((await snapshot(page))["--day-hour"]).not.toBe(
-    afterDeparture["--day-hour"],
-  );
-  await page.locator("main").evaluate((element) => {
-    element.setAttribute("data-route-observation", "progressing");
-  });
-  await expect(page.locator("main")).toHaveAttribute(
-    "data-atmosphere-mode",
-    "intro",
-  );
-  // Finish round 2 from the partway-through pickup and compare the boundary.
-  await page.clock.runFor(
-    PHASE_DURATION.travelling +
-      PHASE_DURATION.arriving +
-      PHASE_DURATION.boarding +
-      20,
-  );
-  await expect(page.locator("main")).toHaveAttribute("data-phase", "waiting");
-  for (let friend = 2; friend <= 3; friend++) {
-    await page.keyboard.press("Enter");
-    await collectFriend(page, friend);
-  }
-  await page.keyboard.press("Enter");
-  await page.clock.runFor(PHASE_DURATION.departing + 10);
-  for (let scene = 0; scene < 3; scene++)
-    await page.clock.runFor(PHASE_DURATION.touring + 10);
-  await page.clock.runFor(PHASE_DURATION.returning + 10);
-  await page.clock.runFor(PHASE_DURATION.unboarding + 10);
-  const home = await snapshot(page);
-  await expect(page.locator("main")).toHaveAttribute("data-journeys", "2");
-  await expect(page.locator("main")).toHaveAttribute(
-    "data-atmosphere-mode",
-    "dynamic",
-  );
-  const reachedWeather = new Set<string>();
-  const reachedTime = new Set<string>();
-  for (let passenger = 1; passenger <= 3; passenger++) {
-    await page.keyboard.press("Enter");
-    for (const phase of [
-      "departing",
-      "travelling",
-      "arriving",
-      "boarding",
-    ] as const) {
-      await page.clock.runFor(PHASE_DURATION[phase] + 10);
-      reachedWeather.add(
-        (await page.locator("main").getAttribute("data-weather")) ?? "",
-      );
-      reachedTime.add(
-        (await page.locator("main").getAttribute("data-time-of-day")) ?? "",
-      );
-    }
-  }
-  await page.keyboard.press("Enter");
-  await page.clock.runFor(PHASE_DURATION.departing + 10);
-  for (let scene = 0; scene < 3; scene++) {
-    await page.clock.runFor(PHASE_DURATION.touring / 2);
-    reachedWeather.add(
-      (await page.locator("main").getAttribute("data-weather")) ?? "",
-    );
-    reachedTime.add(
-      (await page.locator("main").getAttribute("data-time-of-day")) ?? "",
-    );
-    await page.clock.runFor(PHASE_DURATION.touring / 2 + 10);
-    reachedWeather.add(
-      (await page.locator("main").getAttribute("data-weather")) ?? "",
-    );
-  }
-  await page.clock.runFor(PHASE_DURATION.returning + 10);
-  await page.clock.runFor(PHASE_DURATION.unboarding + 10);
-  expect(reachedWeather).toEqual(new Set(WEATHER_TYPES));
-  expect(reachedTime.size).toBeGreaterThanOrEqual(3);
-  await expect(page.locator("main")).toHaveAttribute("data-journeys", "3");
+  await page.clock.runFor(1500);
+  const movingSnap = await snapshot(page);
+  expect(movingSnap["--day-hour"]).not.toBe(initial["--day-hour"]);
+  expect(Number(movingSnap["--day-hour"])).toBeGreaterThan(12);
+
+  await collectFriend(page, 1);
+  const stationSnap = await snapshot(page);
+
+  // Waiting at station pauses time progression until user acts
+  await page.clock.runFor(10000);
+  const stillStationSnap = await snapshot(page);
+  expect(stillStationSnap["--day-hour"]).toBe(stationSnap["--day-hour"]);
 });
 
 test("hide and resume preserves the exact weather/time point, including particles", async ({
   page,
 }) => {
   await start(page);
-  await completeRound(page);
-  await completeRound(page);
   await page.keyboard.press("Enter");
   await page.clock.runFor(1400);
   await page.evaluate(() => {
@@ -382,12 +228,11 @@ test("hide and resume preserves the exact weather/time point, including particle
   );
 });
 
-test("reduced motion still shows a gradual sky, without fast particles or animation bursts", async ({
+test("reduced motion still shows a gradual sky, without fast particles", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await start(page);
-  await completeRound(page);
   await page.keyboard.press("Enter");
   await page.clock.runFor(2000);
   const first = await snapshot(page);

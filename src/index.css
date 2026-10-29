@@ -4,16 +4,18 @@
 
 :root {
   font-family: "DM Sans", sans-serif;
-  color: #405b49;
+  color: #384f40;
   background: #f6f3e8;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
 * {
   box-sizing: border-box;
 }
+
 html,
 body,
 #root {
@@ -21,9 +23,11 @@ body,
   min-width: 320px;
   min-height: 100%;
 }
+
 body {
   overscroll-behavior: none;
 }
+
 ::selection {
   background: #dce1c8;
 }
@@ -38,7 +42,10 @@ body {
   );
   user-select: none;
   -webkit-user-select: none;
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
 }
+
 .little-world::after {
   content: "";
   position: absolute;
@@ -48,93 +55,209 @@ body {
   opacity: 0.12;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.86' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%235e644d' opacity='.22' filter='url(%23n)' d='M0 0h180v180H0z'/%3E%3C/svg%3E");
 }
+
+/* Parent Trust Strip */
+.parent-value-strip {
+  position: relative;
+  z-index: 20;
+  background: rgba(255, 253, 245, 0.88);
+  border-bottom: 1px solid rgba(180, 192, 170, 0.5);
+  backdrop-filter: blur(8px);
+  padding: 6px 4.4%;
+  font-size: 12px;
+  color: #4a5c4d;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  animation: appear 0.6s ease-out both;
+}
+
+.parent-value-text {
+  font-weight: 500;
+  letter-spacing: 0.1px;
+}
+
+.parent-shield-icon {
+  color: #55795e;
+}
+
+.parent-strip-btn {
+  background: rgba(90, 115, 96, 0.12);
+  border: 1px solid rgba(90, 115, 96, 0.25);
+  color: #3b503f;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.parent-strip-btn:hover {
+  background: rgba(90, 115, 96, 0.2);
+}
+
+.parent-strip-close {
+  background: none;
+  border: none;
+  color: #647565;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.parent-strip-close:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.parent-pill-trigger {
+  position: absolute;
+  top: max(8px, env(safe-area-inset-top, 8px));
+  right: max(16px, env(safe-area-inset-right, 16px));
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 253, 245, 0.85);
+  border: 1px solid rgba(180, 192, 170, 0.6);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #4a5c4d;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.parent-pill-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #689271;
+}
+
+.parent-gear-btn {
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(160, 175, 150, 0.4);
+  color: var(--ink, #405b49);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.parent-gear-btn:hover {
+  background: rgba(255, 255, 255, 0.7);
+  transform: rotate(20deg);
+}
+
 .site-header {
   position: relative;
   z-index: 3;
-  padding: 30px 4.4%;
+  padding: 22px 4.4% 16px;
   animation: appear 1s ease-out both;
 }
+
 .world-brand {
   gap: 12px;
 }
-.world-brand > svg {
-  width: 43px;
-  height: 43px;
-}
-.world-brand > span {
+
+.brand-sub {
   font-size: 12px;
-  line-height: 1.45;
-  letter-spacing: 0.3px;
+  color: var(--muted, #556c5a);
 }
+
 .brand-name {
   display: block;
   font-family: "Fraunces", Georgia, serif;
-  font-size: 20px;
+  font-size: 22px;
   letter-spacing: -0.4px;
+  color: var(--ink, #384f40);
 }
+
 .quiet-note {
-  font-size: 12px;
-  color: #87907b;
+  font-size: 13px;
+  color: var(--muted, #556c5a);
   letter-spacing: 0.2px;
+  font-weight: 500;
 }
+
 .quiet-note svg {
-  opacity: 0.85;
+  opacity: 0.9;
 }
 
 .introduction {
   position: absolute;
   z-index: 2;
   width: 100%;
-  top: 15.1%;
+  top: 13.5%;
   padding: 0 24px;
   pointer-events: none;
   animation: intro-appear 1.25s 0.12s ease-out both;
 }
+
 .intro-flourish {
-  color: #95a184;
-  margin-bottom: 16px;
+  color: var(--muted, #5d7562);
+  margin-bottom: 12px;
 }
+
 .intro-flourish > span {
   width: 29px;
   height: 1px;
-  background: #c9cbb2;
+  background: #b5c2a8;
 }
+
 .introduction h1 {
   font-family: "Fraunces", Georgia, serif;
-  font-size: clamp(54px, 5.25vw, 83px);
+  font-size: clamp(50px, 4.8vw, 76px);
   line-height: 1.12;
   font-weight: 500;
-  letter-spacing: -3.5px;
+  letter-spacing: -3px;
   margin: 0;
+  color: var(--ink, #384f40);
 }
+
 .introduction h1 em {
   font-weight: 500;
-  color: #9c7155;
+  color: var(--accent, #9c7155);
 }
-.introduction > p {
-  margin: 21px 0 0;
-  color: #89907b;
+
+.intro-subtitle {
+  margin: 14px 0 0;
+  color: var(--muted, #556c5a);
   font-size: 15px;
   line-height: 1.6;
   letter-spacing: 0.1px;
 }
 
+.intro-subtitle strong {
+  color: var(--ink, #384f40);
+  font-weight: 600;
+}
+
 .landscape {
   position: absolute;
-  inset: 29% 0 131px;
+  inset: 27% 0 135px;
   pointer-events: none;
   animation: landscape-appear 1.65s ease-out both;
 }
+
 .world-illustration {
   display: block;
   width: 100%;
   height: 100%;
   overflow: visible;
 }
+
 .scenery {
   opacity: 0;
   transition: opacity 1.8s ease-in-out;
 }
+
 .scenery--active {
   opacity: 1;
 }
@@ -142,48 +265,59 @@ body {
 .journey-invitation {
   position: absolute;
   z-index: 2;
-  bottom: 66px;
+  bottom: max(60px, calc(env(safe-area-inset-bottom, 0px) + 50px));
   width: 100%;
   padding: 0 16px;
   animation: intro-appear 1.2s 0.5s ease-out both;
 }
+
 .journey-message {
-  min-height: 23px;
-  margin: 0 0 15px;
-  font-size: 15px;
-  font-weight: 500;
-  color: #65755b;
+  min-height: 24px;
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink, #384f40);
 }
+
 .journey-message > span {
   display: inline-block;
   animation: message-appear 0.75s ease-out both;
 }
+
+.journey-teaser {
+  color: var(--muted, #5a725f);
+  font-weight: 500;
+  margin-bottom: 14px;
+}
+
 .keyboard-invitation {
   gap: 14px;
-  color: #64705b;
-  font-size: 14px;
+  color: var(--ink, #384f40);
+  font-size: 15px;
+  font-weight: 500;
 }
+
 .invitation-prefix--touch {
   display: none;
 }
+
 .enter-key {
-  width: 119px;
-  height: 48px;
+  width: 122px;
+  height: 50px;
   padding: 0 16px;
-  border: 1px solid #b6bba2;
-  border-bottom: 4px solid #b1b69b;
-  border-radius: 9px;
-  color: #405d49;
+  border: 1px solid #aab396;
+  border-bottom: 4px solid #9ba584;
+  border-radius: 10px;
+  color: #344c3c;
   background: #fdfbef;
   box-shadow:
-    0 3px 0 #e7e7d4,
+    0 3px 0 #dedec5,
     inset 0 1px 0 #fffef8;
   font:
-    500 15px "DM Sans",
+    600 16px "DM Sans",
     sans-serif;
   cursor: pointer;
   appearance: none;
-  /* A finger press must not select text, zoom, highlight or open a menu. */
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
@@ -193,131 +327,162 @@ body {
     border-color 0.8s,
     background 0.4s;
 }
+
 .enter-key:focus-visible {
-  outline: 3px solid #9fb08e;
+  outline: 3px solid #7c946b;
   outline-offset: 4px;
 }
+
 .enter-key:active {
   animation: none;
   background: #f4f1e0;
   border-bottom-width: 2px;
   box-shadow:
-    0 1px 0 #e7e7d4,
+    0 1px 0 #dedec5,
     inset 0 1px 0 #fffef8;
   transform: translateY(2px);
   transition-duration: 0.06s;
 }
+
 .is-travelling .keyboard-invitation {
-  opacity: 0.38;
+  opacity: 0.45;
   transition: opacity 0.8s;
 }
+
 .is-ready .keyboard-invitation {
   opacity: 1;
   transition: opacity 1s;
 }
+
 .is-ready .enter-key {
   animation: key-presence 5s ease-in-out infinite;
 }
+
 .patient-note {
-  height: 16px;
-  margin: 16px 0 0;
-  color: #a0a28b;
-  font-size: 11px;
+  height: 18px;
+  margin: 14px 0 0;
+  color: var(--muted, #556c5a);
+  font-size: 13px;
   letter-spacing: 0.2px;
+  font-weight: 500;
 }
 
 .page-footer {
   position: absolute;
-  inset: auto 4.5% 24px;
-  color: #9a9e88;
-  font-size: 10px;
+  inset: auto 4.5% max(18px, env(safe-area-inset-bottom, 18px));
+  color: var(--muted, #556c5a);
+  font-size: 13px;
   letter-spacing: 0.3px;
+  font-weight: 500;
 }
+
 .footer-left {
   display: flex;
   align-items: center;
   gap: 9px;
 }
+
 .little-leaf {
-  width: 10px;
-  height: 15px;
+  width: 11px;
+  height: 16px;
   border-radius: 12px 0 12px 0;
-  background: #b2bea0;
-  transform: rotate(-25deg) scale(0.8);
+  background: #99ae87;
+  transform: rotate(-25deg) scale(0.85);
 }
+
 .footer-heart {
   display: inline-block;
   font-size: 16px;
   vertical-align: -1px;
   margin-left: 5px;
-  color: #aa9a7e;
+  color: var(--accent, #9c7155);
 }
 
+/* Animations */
 .cloud {
   animation: cloud-drift 56s ease-in-out infinite alternate;
 }
+
 .steam-puff {
   transform-origin: 510px 300px;
   animation: steam-rise 9s ease-out infinite;
 }
+
 .steam-puff--one {
   animation-delay: -1s;
 }
+
 .steam-puff--two {
   animation-delay: -4s;
 }
+
 .steam-puff--three {
   animation-delay: -7s;
 }
+
 .wheel-spin {
   animation: wheel-turn 5s linear infinite;
   animation-play-state: paused;
 }
+
 .parallax-trees {
   animation: scenery-pass 48s linear infinite;
   animation-play-state: paused;
 }
+
 .rail-sleepers {
   animation: track-pass 1.2s linear infinite;
   animation-play-state: paused;
 }
+
 .is-moving .wheel-spin,
 .is-moving .parallax-trees,
 .is-moving .rail-sleepers {
   animation-play-state: running;
 }
+
 .is-moving .train {
   animation: train-roll 2.6s ease-in-out infinite;
 }
+
 .is-moving .piston {
   animation: piston-turn 2.5s ease-in-out infinite;
 }
+
 .station--departing {
   animation: station-leave 2s cubic-bezier(0.55, 0.05, 0.8, 0.7) both;
 }
+
 .station--arriving {
   animation: station-arrive 1.8s cubic-bezier(0.2, 0.6, 0.35, 1) both;
 }
+
 .passenger--boarding {
   animation: passenger-board 1.7s cubic-bezier(0.2, 0.6, 0.3, 1) both;
 }
+
 .passenger--leaving {
   animation: passenger-leave 1.4s var(--passenger-delay, 0s) ease-in-out
     forwards;
 }
+
 .waving-paw {
   transform-origin: 22px 46px;
   animation: friendly-wave 6.5s ease-in-out infinite;
 }
+
 .passenger--boarding .waving-paw {
   animation-delay: 1.1s;
 }
+
 .platform-friend {
   transition: opacity 0.8s;
 }
+
 .platform-friend--boarding {
   opacity: 0;
 }
+
 .is-paused *,
 .is-paused *::before,
 .is-paused *::after {
@@ -332,6 +497,7 @@ body {
     opacity: 1;
   }
 }
+
 @keyframes intro-appear {
   from {
     opacity: 0;
@@ -342,6 +508,7 @@ body {
     transform: translateY(0);
   }
 }
+
 @keyframes landscape-appear {
   from {
     opacity: 0;
@@ -352,6 +519,7 @@ body {
     transform: translateY(0);
   }
 }
+
 @keyframes message-appear {
   from {
     opacity: 0;
@@ -362,6 +530,7 @@ body {
     transform: translateY(0);
   }
 }
+
 @keyframes cloud-drift {
   from {
     transform: translateX(-13px);
@@ -370,6 +539,7 @@ body {
     transform: translateX(22px);
   }
 }
+
 @keyframes steam-rise {
   0% {
     opacity: 0.1;
@@ -383,21 +553,25 @@ body {
     transform: translate(-27px, -41px) scale(1.1);
   }
 }
+
 @keyframes wheel-turn {
   to {
     transform: rotate(-360deg);
   }
 }
+
 @keyframes scenery-pass {
   to {
     transform: translateX(1600px);
   }
 }
+
 @keyframes track-pass {
   to {
     transform: translateX(40px);
   }
 }
+
 @keyframes train-roll {
   0%,
   100% {
@@ -407,6 +581,7 @@ body {
     transform: translateY(-1.4px);
   }
 }
+
 @keyframes piston-turn {
   0%,
   100% {
@@ -416,6 +591,7 @@ body {
     transform: translateY(-2px);
   }
 }
+
 @keyframes station-leave {
   from {
     opacity: 1;
@@ -426,6 +602,7 @@ body {
     transform: translateX(260px);
   }
 }
+
 @keyframes station-arrive {
   from {
     opacity: 0;
@@ -436,6 +613,7 @@ body {
     transform: translateX(0);
   }
 }
+
 @keyframes passenger-board {
   from {
     opacity: 0;
@@ -449,12 +627,14 @@ body {
     transform: translateY(0);
   }
 }
+
 @keyframes passenger-leave {
   to {
     opacity: 0;
     transform: translateY(85px);
   }
 }
+
 @keyframes friendly-wave {
   0%,
   29%,
@@ -471,6 +651,7 @@ body {
     transform: rotate(10deg);
   }
 }
+
 @keyframes key-presence {
   0%,
   65%,
@@ -485,6 +666,222 @@ body {
   }
 }
 
+/* Parent Modal & Gate Styles */
+.parent-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(30, 42, 35, 0.6);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: appear 0.25s ease-out both;
+}
+
+.parent-modal-card {
+  background: #fdfaf2;
+  border: 1px solid #d4ddc8;
+  border-radius: 18px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.16);
+  width: 100%;
+  max-width: 520px;
+  padding: 24px;
+  color: #384f40;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.parent-modal-heading {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: #2e4435;
+}
+
+.parent-modal-close {
+  background: rgba(0, 0, 0, 0.05);
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: pointer;
+  color: #556c5a;
+}
+
+.parent-gate-desc {
+  font-size: 14px;
+  color: #556c5a;
+  margin: 16px 0;
+}
+
+.parent-gate-challenge {
+  font-size: 22px;
+  font-weight: 600;
+  color: #2e4435;
+  margin: 20px 0;
+}
+
+.parent-gate-input {
+  width: 70px;
+  height: 44px;
+  font-size: 20px;
+  text-align: center;
+  border: 2px solid #a3b899;
+  border-radius: 8px;
+  background: #fff;
+  color: #2e4435;
+}
+
+.parent-gate-submit {
+  background: #507157;
+  color: #fff;
+  border: none;
+  padding: 0 16px;
+  height: 44px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.parent-gate-error {
+  color: #b34a4a;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.parent-section {
+  border-bottom: 1px solid #e8ebd8;
+  padding-bottom: 16px;
+}
+
+.parent-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #2e4435;
+  margin-bottom: 10px;
+}
+
+.parent-action-btn {
+  background: #eef3e5;
+  border: 1px solid #cad6be;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #384f40;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.parent-action-btn:hover {
+  background: #e2ecd6;
+}
+
+.parent-override-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.parent-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #556c5a;
+  margin-bottom: 4px;
+}
+
+.parent-select {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #cad6be;
+  background: #fff;
+  color: #2e4435;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.parent-trust-box {
+  background: #f1f5e9;
+  border-radius: 10px;
+  padding: 12px 14px;
+  border: 1px solid #d5decb;
+}
+
+.parent-trust-heading {
+  font-size: 13px;
+  font-weight: 700;
+  color: #384f40;
+  margin-bottom: 4px;
+}
+
+.parent-trust-desc {
+  font-size: 12px;
+  color: #556c5a;
+  line-height: 1.5;
+}
+
+.parent-done-btn {
+  background: #476a4e;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Rest Screen Styles */
+.rest-screen-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: #131d2a;
+  color: #f6ecd5;
+  animation: appear 0.8s ease-out both;
+}
+
+.rest-title {
+  color: #f7eed7;
+  font-size: 32px;
+}
+
+.rest-desc {
+  color: #cad8dc;
+  font-size: 16px;
+}
+
+.rest-continue-btn {
+  background: #f4e8c6;
+  color: #2b3a4a;
+  border: 2px solid #e5d4a4;
+  border-radius: 24px;
+  padding: 12px 28px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition:
+    transform 0.2s,
+    background 0.2s;
+}
+
+.rest-continue-btn:hover {
+  transform: scale(1.03);
+  background: #fdf5db;
+}
+
+/* Responsive Media Queries */
 @media (min-width: 1800px) {
   .introduction {
     top: 14%;
@@ -496,39 +893,40 @@ body {
     bottom: 77px;
   }
 }
+
 @media (max-height: 820px) and (min-width: 761px) {
   .little-world {
     min-height: 680px;
   }
   .site-header {
-    padding-top: 23px;
+    padding-top: 18px;
   }
   .introduction {
-    top: 14%;
+    top: 13%;
   }
   .intro-flourish {
-    margin-bottom: 9px;
+    margin-bottom: 8px;
   }
   .introduction h1 {
-    font-size: clamp(52px, 5vw, 72px);
+    font-size: clamp(48px, 4.5vw, 68px);
   }
-  .introduction > p {
-    margin-top: 13px;
-    font-size: 13px;
+  .intro-subtitle {
+    margin-top: 10px;
+    font-size: 14px;
   }
   .landscape {
-    inset: 27% 0 120px;
+    inset: 25% 0 120px;
   }
   .journey-invitation {
     bottom: 49px;
   }
   .journey-message {
-    margin-bottom: 10px;
-    font-size: 13px;
+    margin-bottom: 8px;
+    font-size: 15px;
   }
   .enter-key {
-    height: 43px;
-    width: 110px;
+    height: 46px;
+    width: 114px;
   }
   .patient-note {
     margin-top: 11px;
@@ -537,28 +935,22 @@ body {
     bottom: 17px;
   }
 }
+
 @media (max-width: 1000px) {
   .little-world {
     min-height: 720px;
   }
   .site-header {
-    padding: 23px 24px;
+    padding: 16px 20px;
   }
   .world-brand {
     gap: 8px;
   }
-  .world-brand > svg {
-    width: 35px;
-    height: 35px;
-  }
-  .world-brand > span {
-    font-size: 10px;
-  }
   .brand-name {
-    font-size: 17px;
+    font-size: 19px;
   }
   .quiet-note {
-    font-size: 10px;
+    font-size: 12px;
     gap: 6px;
   }
   .quiet-note svg {
@@ -566,24 +958,24 @@ body {
     height: 15px;
   }
   .introduction {
-    top: 16%;
+    top: 15%;
   }
   .introduction h1 {
     max-width: 580px;
     margin: auto;
-    font-size: clamp(43px, 7.8vw, 60px);
+    font-size: clamp(42px, 7.5vw, 58px);
     letter-spacing: -2px;
   }
-  .introduction > p {
-    max-width: 330px;
-    margin: 17px auto 0;
-    font-size: 12px;
+  .intro-subtitle {
+    max-width: 360px;
+    margin: 12px auto 0;
+    font-size: 14px;
   }
   .intro-flourish {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
   }
   .landscape {
-    inset: 35% -3% 166px;
+    inset: 32% -3% 160px;
   }
   .world-illustration {
     position: absolute;
@@ -592,56 +984,58 @@ body {
     overflow: visible;
   }
   .journey-invitation {
-    bottom: 85px;
+    bottom: 78px;
   }
   .journey-message {
-    max-width: 430px;
-    margin: 0 auto 16px;
-    font-size: 13px;
+    max-width: 440px;
+    margin: 0 auto 10px;
+    font-size: 15px;
   }
   .keyboard-invitation {
-    font-size: 12px;
+    font-size: 14px;
     gap: 11px;
   }
   .enter-key {
-    width: 105px;
-    height: 46px;
-    font-size: 14px;
+    width: 110px;
+    height: 48px;
+    font-size: 15px;
     gap: 12px;
   }
   .patient-note {
-    margin-top: 17px;
-    font-size: 10px;
+    margin-top: 14px;
+    font-size: 12px;
   }
   .page-footer {
-    left: 24px;
-    right: 24px;
-    bottom: 26px;
-    font-size: 9px;
+    left: 20px;
+    right: 20px;
+    bottom: 22px;
+    font-size: 12px;
   }
   .footer-left {
-    max-width: 160px;
-    gap: 4px;
+    max-width: 180px;
+    gap: 5px;
   }
   .footer-right {
-    font-size: 9px;
+    font-size: 12px;
   }
 }
+
 @media (min-width: 481px) and (max-width: 1000px) and (orientation: portrait) {
   .introduction h1 {
-    font-size: clamp(54px, 8.5vw, 72px);
+    font-size: clamp(50px, 8vw, 68px);
   }
   .introduction h1 em {
     display: block;
   }
-  .introduction > p {
-    font-size: 14px;
+  .intro-subtitle {
+    font-size: 15px;
   }
   .scenery {
     transform: scaleY(1.4);
     transform-origin: 800px 400px;
   }
 }
+
 @media (max-width: 480px) {
   .little-world {
     min-height: 700px;
@@ -650,117 +1044,113 @@ body {
     display: none;
   }
   .introduction {
-    top: 16%;
+    top: 15%;
   }
   .introduction h1 {
     max-width: 340px;
-    font-size: 47px;
+    font-size: 44px;
     line-height: 1.08;
   }
   .introduction h1 em {
     display: block;
   }
-  .introduction > p {
-    max-width: 270px;
+  .intro-subtitle {
+    max-width: 290px;
   }
   .landscape {
-    inset: 39% -11% 172px;
+    inset: 36% -11% 165px;
   }
   .scenery {
     transform: scaleY(1.8);
     transform-origin: 800px 400px;
   }
   .journey-invitation {
-    bottom: 78px;
+    bottom: 72px;
   }
   .journey-message {
     max-width: 320px;
-    font-size: 12px;
+    font-size: 14px;
   }
   .keyboard-invitation {
     gap: 9px;
-    font-size: 11px;
+    font-size: 13px;
   }
   .enter-key {
-    width: 98px;
+    width: 105px;
   }
-  .footer-left {
-    font-size: 8px;
-  }
-  .footer-right {
-    font-size: 8px;
+  .page-footer {
+    font-size: 11px;
   }
 }
+
 @media (max-height: 600px) and (min-width: 761px) {
   .little-world {
     min-height: 390px;
   }
   .site-header {
-    padding: 15px 30px;
+    padding: 12px 24px;
   }
   .world-brand > svg {
     width: 32px;
     height: 32px;
   }
-  .world-brand > span {
-    font-size: 9px;
-  }
   .brand-name {
-    font-size: 16px;
+    font-size: 17px;
   }
   .introduction {
-    top: 17%;
+    top: 15%;
   }
   .intro-flourish {
     display: none;
   }
   .introduction h1 {
-    font-size: clamp(40px, 8.5vh, 56px);
+    font-size: clamp(36px, 7.5vh, 50px);
   }
-  .introduction > p {
-    margin-top: 9px;
+  .intro-subtitle {
+    margin-top: 6px;
     max-width: none;
-    font-size: 11px;
+    font-size: 12px;
   }
   .landscape {
-    inset: 24% 0 122px;
+    inset: 24% 0 120px;
   }
   .world-illustration {
     position: static;
     height: 100%;
   }
   .journey-invitation {
-    bottom: 35px;
+    bottom: 30px;
   }
   .journey-message {
-    margin-bottom: 6px;
+    margin-bottom: 4px;
     min-height: 16px;
-    font-size: 11px;
+    font-size: 13px;
   }
   .keyboard-invitation {
-    font-size: 11px;
+    font-size: 13px;
   }
   .enter-key {
-    width: 96px;
-    height: 36px;
-    font-size: 12px;
+    width: 100px;
+    height: 38px;
+    font-size: 13px;
   }
   .patient-note {
-    margin-top: 9px;
-    font-size: 9px;
+    margin-top: 6px;
+    font-size: 11px;
   }
   .page-footer {
-    bottom: 9px;
-    font-size: 8px;
+    bottom: 8px;
+    font-size: 11px;
   }
 }
+
 @media (max-height: 450px) and (min-width: 761px) {
   .patient-note {
     display: none;
   }
 }
 
-/* Touch devices: the key becomes a big, calm button for a small finger. */
+/* Touch devices: the key becomes a big, calm button for a small finger */
 @media (hover: none) and (pointer: coarse) {
   .invitation-prefix--key {
     display: none;
@@ -778,7 +1168,7 @@ body {
     border-radius: 18px;
     border-bottom-width: 7px;
     box-shadow:
-      0 5px 0 #e7e7d4,
+      0 5px 0 #dedec5,
       inset 0 1px 0 #fffef8;
     font-size: 23px;
     gap: 14px;
@@ -790,7 +1180,7 @@ body {
   .enter-key:active {
     border-bottom-width: 3px;
     box-shadow:
-      0 1px 0 #e7e7d4,
+      0 1px 0 #dedec5,
       inset 0 1px 0 #fffef8;
     transform: translateY(4px);
   }
@@ -805,57 +1195,64 @@ body {
     margin-top: 14px;
   }
 }
+
 @media (hover: none) and (pointer: coarse) and (max-width: 1000px) {
   .journey-invitation {
-    bottom: 48px;
+    bottom: max(44px, calc(env(safe-area-inset-bottom, 0px) + 38px));
   }
   .landscape {
     bottom: 290px;
   }
 }
-/* A phone held sideways is short: shrink the words, keep the picture and key. */
+
+/* A phone held sideways is short: shrink words, keep picture and key */
 @media (hover: none) and (pointer: coarse) and (max-height: 560px) {
-  /* Everything has to fit the short screen: a child should never scroll. */
   .little-world {
     min-height: 0;
   }
+  .parent-value-strip {
+    display: none;
+  }
   .introduction {
-    top: 9%;
+    top: 8%;
   }
   .intro-flourish {
     display: none;
   }
   .introduction h1 {
-    font-size: clamp(30px, 6vw, 44px);
+    font-size: clamp(28px, 5.5vw, 40px);
     letter-spacing: -1.5px;
   }
   .introduction h1 em {
     display: inline;
   }
-  .introduction > p {
+  .intro-subtitle {
     display: none;
   }
   .landscape {
-    inset: 20% 9% 168px;
+    inset: 18% 8% 145px;
   }
   .journey-invitation {
-    bottom: 16px;
+    bottom: 12px;
   }
   .journey-message {
     min-height: 15px;
-    margin-bottom: 8px;
-    font-size: 12px;
+    margin-bottom: 6px;
+    font-size: 13px;
+  }
+  .journey-teaser {
+    display: none;
   }
   .keyboard-invitation {
     gap: 6px 10px;
   }
   .invitation-prefix,
   .invitation-suffix {
-    font-size: 11px;
+    font-size: 12px;
   }
   .enter-key {
     width: min(240px, 44vw);
-    height: 54px;
+    height: 52px;
     font-size: 18px;
   }
   .enter-key svg {
@@ -867,10 +1264,10 @@ body {
     display: none;
   }
 }
-/* A wide, short screen needs the picture narrower so nothing is covered. */
+
 @media (hover: none) and (pointer: coarse) and (max-height: 560px) and (min-width: 761px) {
   .landscape {
-    inset: 18% 16% 182px;
+    inset: 16% 16% 160px;
   }
 }
 

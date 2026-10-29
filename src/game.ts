@@ -1,5 +1,26 @@
-export type Landscape = "home" | "forest" | "village" | "mountains";
-export type AnimalKind = "rabbit" | "fox" | "bear";
+export type Landscape =
+  | "home"
+  | "forest"
+  | "village"
+  | "mountains"
+  | "river"
+  | "birch"
+  | "snow_village"
+  | "meadow";
+
+export type AnimalKind =
+  | "rabbit"
+  | "fox"
+  | "bear"
+  | "hedgehog"
+  | "owl"
+  | "squirrel"
+  | "cat"
+  | "dog"
+  | "frog"
+  | "badger"
+  | "deer";
+
 export type Phase =
   | "waiting"
   | "departing"
@@ -10,29 +31,145 @@ export type Phase =
   | "returning"
   | "unboarding";
 
-export interface JourneyState {
-  phase: Phase;
-  stop: number;
-  passengers: number;
-  tourIndex: number;
-  isTour: boolean;
-  journeys: number;
+export interface StopDefinition {
+  name: string;
+  landscape: Landscape;
+  teaser: string;
 }
 
-export const STOPS = [
-  { name: "Stacja Artura", landscape: "home" as Landscape },
-  { name: "Le\u015bna Polana", landscape: "forest" as Landscape },
-  { name: "S\u0142oneczna Wie\u015b", landscape: "village" as Landscape },
-  { name: "G\u00f3rska Dolina", landscape: "mountains" as Landscape },
+export interface AnimalDefinition {
+  kind: AnimalKind;
+  name: string;
+  genitive: string; // e.g. "Króliczka", "Liska", "Misia"
+  description: string;
+}
+
+export const ALL_ANIMALS: Record<AnimalKind, AnimalDefinition> = {
+  rabbit: {
+    kind: "rabbit",
+    name: "Króliczek",
+    genitive: "Króliczka",
+    description: "z długimi uszkami",
+  },
+  fox: {
+    kind: "fox",
+    name: "Lisek",
+    genitive: "Liska",
+    description: "z rudym pyszczkiem",
+  },
+  bear: {
+    kind: "bear",
+    name: "Miś",
+    genitive: "Misia",
+    description: "o miękkim futerku",
+  },
+  hedgehog: {
+    kind: "hedgehog",
+    name: "Jeżyk",
+    genitive: "Jeżyka",
+    description: "z małymi kolcami",
+  },
+  owl: {
+    kind: "owl",
+    name: "Sówka",
+    genitive: "Sówki",
+    description: "z mądrymi oczami",
+  },
+  squirrel: {
+    kind: "squirrel",
+    name: "Wiewiórka",
+    genitive: "Wiewiórki",
+    description: "z puszystym ogonkiem",
+  },
+  cat: {
+    kind: "cat",
+    name: "Kotek",
+    genitive: "Kotka",
+    description: "z wesołymi wąsikami",
+  },
+  dog: {
+    kind: "dog",
+    name: "Piesek",
+    genitive: "Pieska",
+    description: "z merdającym ogonkiem",
+  },
+  frog: {
+    kind: "frog",
+    name: "Żabka",
+    genitive: "Żabki",
+    description: "w zielonym kubraczku",
+  },
+  badger: {
+    kind: "badger",
+    name: "Borsuk",
+    genitive: "Borsuka",
+    description: "w biało-czarne paseczki",
+  },
+  deer: {
+    kind: "deer",
+    name: "Jelonek",
+    genitive: "Jelonka",
+    description: "z małymi różkami",
+  },
+};
+
+export const ANIMAL_KEYS: AnimalKind[] = Object.keys(
+  ALL_ANIMALS,
+) as AnimalKind[];
+
+export const ALL_LOCATIONS: Record<Landscape, StopDefinition> = {
+  home: {
+    name: "Stacja Artura",
+    landscape: "home",
+    teaser: "Wracamy do przytulnego domku",
+  },
+  forest: {
+    name: "Leśna Polana",
+    landscape: "forest",
+    teaser: "Wśród zielonych sosen i dębów",
+  },
+  village: {
+    name: "Słoneczna Wieś",
+    landscape: "village",
+    teaser: "Obok małych domków i płotków",
+  },
+  mountains: {
+    name: "Górska Dolina",
+    landscape: "mountains",
+    teaser: "W cieniu wysokich, łagodnych szczytów",
+  },
+  river: {
+    name: "Nadbrzeże Rzeki",
+    landscape: "river",
+    teaser: "Gdzie szumi woda i kołysze się mała łódka",
+  },
+  birch: {
+    name: "Brzozowy Gaj",
+    landscape: "birch",
+    teaser: "Wśród białych drzew o złotych listkach",
+  },
+  snow_village: {
+    name: "Śnieżna Polana",
+    landscape: "snow_village",
+    teaser: "Otulona puszystym, białym śniegiem",
+  },
+  meadow: {
+    name: "Szepcząca Łąka",
+    landscape: "meadow",
+    teaser: "Pełna pachnących polnych kwiatków",
+  },
+};
+
+export const DESTINATION_LOCATIONS: Landscape[] = [
+  "forest",
+  "village",
+  "mountains",
+  "river",
+  "birch",
+  "snow_village",
+  "meadow",
 ];
 
-export const ANIMALS: { kind: AnimalKind; name: string }[] = [
-  { kind: "rabbit", name: "Kr\u00f3liczek" },
-  { kind: "fox", name: "Lisek" },
-  { kind: "bear", name: "Mi\u015b" },
-];
-
-export const TOUR: Landscape[] = ["forest", "village", "mountains"];
 export const PHASE_DURATION: Record<Exclude<Phase, "waiting">, number> = {
   departing: 2000,
   travelling: 2200,
@@ -43,83 +180,271 @@ export const PHASE_DURATION: Record<Exclude<Phase, "waiting">, number> = {
   unboarding: 2400,
 };
 
-export const initialJourney: JourneyState = {
-  phase: "waiting",
-  stop: 0,
-  passengers: 0,
-  tourIndex: 0,
-  isTour: false,
-  journeys: 0,
+export function shuffleArray<T>(array: T[], random = Math.random): T[] {
+  const result = [...array];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+export interface SessionPlan {
+  driver: AnimalKind;
+  passengers: AnimalKind[];
+  stops: StopDefinition[];
+  tour: Landscape[];
+}
+
+export function generateSessionPlan(random = Math.random): SessionPlan {
+  const shuffledAnimals = shuffleArray(ANIMAL_KEYS, random);
+  const driver = shuffledAnimals[0];
+  const passengers = [
+    shuffledAnimals[1],
+    shuffledAnimals[2],
+    shuffledAnimals[3],
+  ];
+
+  const shuffledDestinations = shuffleArray(DESTINATION_LOCATIONS, random);
+  const selectedDestinations = [
+    shuffledDestinations[0],
+    shuffledDestinations[1],
+    shuffledDestinations[2],
+  ];
+
+  const stops: StopDefinition[] = [
+    ALL_LOCATIONS.home,
+    ALL_LOCATIONS[selectedDestinations[0]],
+    ALL_LOCATIONS[selectedDestinations[1]],
+    ALL_LOCATIONS[selectedDestinations[2]],
+  ];
+
+  return {
+    driver,
+    passengers,
+    stops,
+    tour: selectedDestinations,
+  };
+}
+
+export interface JourneySettings {
+  weatherOverride: "auto" | "clear" | "rain" | "snow" | "fog";
+  timeOverride: "auto" | "day" | "night" | "dawn" | "dusk";
+  roundsBeforeRest: number; // e.g. 4 rounds before rest screen, 0 = infinite
+  playtimeLimitMinutes: number; // 0 = no limit
+}
+
+export const defaultSettings: JourneySettings = {
+  weatherOverride: "auto",
+  timeOverride: "auto",
+  roundsBeforeRest: 4,
+  playtimeLimitMinutes: 20,
 };
+
+export interface JourneyState {
+  phase: Phase;
+  stop: number;
+  passengersCount: number;
+  tourIndex: number;
+  isTour: boolean;
+  journeys: number;
+  plan: SessionPlan;
+  isResting: boolean;
+  settings: JourneySettings;
+}
+
+export function createInitialJourney(random = Math.random): JourneyState {
+  return {
+    phase: "waiting",
+    stop: 0,
+    passengersCount: 0,
+    tourIndex: 0,
+    isTour: false,
+    journeys: 0,
+    plan: generateSessionPlan(random),
+    isResting: false,
+    settings: defaultSettings,
+  };
+}
+
+export type JourneyAction =
+  | { type: "ENTER" }
+  | { type: "ADVANCE" }
+  | { type: "RESET_SESSION"; random?: () => number }
+  | { type: "UPDATE_SETTINGS"; settings: Partial<JourneySettings> }
+  | { type: "SET_REST"; isResting: boolean };
 
 export function journeyReducer(
   state: JourneyState,
-  action: { type: "ENTER" | "ADVANCE" },
+  action: JourneyAction,
 ): JourneyState {
-  if (action.type === "ENTER") {
-    if (state.phase !== "waiting") return state;
-    return {
-      ...state,
-      phase: "departing",
-      isTour: state.passengers === ANIMALS.length,
-    };
-  }
-  switch (state.phase) {
-    case "departing":
-      return state.isTour
-        ? { ...state, phase: "touring", tourIndex: 0 }
-        : { ...state, phase: "travelling", stop: state.passengers + 1 };
-    case "travelling":
-      return { ...state, phase: "arriving" };
-    case "arriving":
-      return { ...state, phase: "boarding", passengers: state.passengers + 1 };
-    case "boarding":
-      return { ...state, phase: "waiting" };
-    case "touring":
-      return state.tourIndex < TOUR.length - 1
-        ? { ...state, tourIndex: state.tourIndex + 1 }
-        : { ...state, phase: "returning", stop: 0 };
-    case "returning":
-      return { ...state, phase: "unboarding" };
-    case "unboarding":
-      return { ...initialJourney, journeys: state.journeys + 1 };
+  switch (action.type) {
+    case "ENTER": {
+      if (state.phase !== "waiting" || state.isResting) return state;
+      const isTour = state.passengersCount === state.plan.passengers.length;
+      return {
+        ...state,
+        phase: "departing",
+        isTour,
+      };
+    }
+    case "ADVANCE": {
+      switch (state.phase) {
+        case "departing":
+          return state.isTour
+            ? { ...state, phase: "touring", tourIndex: 0 }
+            : {
+                ...state,
+                phase: "travelling",
+                stop: state.passengersCount + 1,
+              };
+        case "travelling":
+          return { ...state, phase: "arriving" };
+        case "arriving":
+          return {
+            ...state,
+            phase: "boarding",
+            passengersCount: state.passengersCount + 1,
+          };
+        case "boarding":
+          return { ...state, phase: "waiting" };
+        case "touring":
+          return state.tourIndex < state.plan.tour.length - 1
+            ? { ...state, tourIndex: state.tourIndex + 1 }
+            : { ...state, phase: "returning", stop: 0 };
+        case "returning":
+          return { ...state, phase: "unboarding" };
+        case "unboarding": {
+          const nextJourneys = state.journeys + 1;
+          const shouldRest =
+            state.settings.roundsBeforeRest > 0 &&
+            nextJourneys % state.settings.roundsBeforeRest === 0;
+
+          // Generate a fresh session plan for subsequent journeys with new friends/stops
+          const nextPlan = generateSessionPlan();
+          return {
+            ...state,
+            phase: "waiting",
+            stop: 0,
+            passengersCount: 0,
+            tourIndex: 0,
+            isTour: false,
+            journeys: nextJourneys,
+            plan: nextPlan,
+            isResting: shouldRest,
+          };
+        }
+        default:
+          return state;
+      }
+    }
+    case "RESET_SESSION": {
+      return createInitialJourney(action.random);
+    }
+    case "UPDATE_SETTINGS": {
+      return {
+        ...state,
+        settings: {
+          ...state.settings,
+          ...action.settings,
+        },
+      };
+    }
+    case "SET_REST": {
+      return {
+        ...state,
+        isResting: action.isResting,
+      };
+    }
     default:
       return state;
   }
 }
 
 export function currentLandscape(state: JourneyState): Landscape {
-  if (state.phase === "touring") return TOUR[state.tourIndex];
-  return STOPS[state.stop].landscape;
+  if (state.phase === "touring") {
+    return state.plan.tour[state.tourIndex] ?? "forest";
+  }
+  return state.plan.stops[state.stop]?.landscape ?? "home";
+}
+
+export function currentStop(state: JourneyState): StopDefinition {
+  return state.plan.stops[state.stop] ?? ALL_LOCATIONS.home;
+}
+
+export function nextStopTeaser(state: JourneyState): string | null {
+  if (state.phase === "waiting") {
+    if (state.passengersCount < state.plan.passengers.length) {
+      const nextStop = state.plan.stops[state.passengersCount + 1];
+      const nextPassenger =
+        ALL_ANIMALS[state.plan.passengers[state.passengersCount]];
+      if (nextStop && nextPassenger) {
+        return `Następna stacja: ${nextStop.name}. Czeka ${nextPassenger.name}.`;
+      }
+    } else {
+      return "Przed nami wielka podróż przez wszystkie krainy!";
+    }
+  }
+  return null;
 }
 
 export function journeyMessage(state: JourneyState): string {
+  const driver = ALL_ANIMALS[state.plan.driver];
+  const passengers = state.plan.passengers;
+
   switch (state.phase) {
     case "waiting":
-      if (state.passengers === 0)
+      if (state.passengersCount === 0) {
         return state.journeys > 0
-          ? "Jeszcze jedna wsp\u00f3lna podr\u00f3\u017c?"
-          : "Gotowi na ma\u0142\u0105, wielk\u0105 podr\u00f3\u017c?";
-      if (state.passengers === ANIMALS.length)
-        return "Wszyscy na pok\u0142adzie. Ruszajmy w \u015bwiat!";
-      return `${ANIMALS[state.passengers - 1].name} ju\u017c jest. Jedziemy dalej?`;
-    case "boarding":
-      return `${ANIMALS[state.passengers - 1].name} wsiada i macha do Ciebie.`;
-    case "arriving":
-      return `${STOPS[state.stop].name}. Kto na nas czeka?`;
-    case "touring":
-      return [
-        "Przez cichy las, pomi\u0119dzy drzewami...",
-        "Przez s\u0142oneczn\u0105 wie\u015b, obok ma\u0142ych domk\u00f3w...",
-        "Przez g\u00f3ry, a\u017c do samych chmur...",
-      ][state.tourIndex];
+          ? `Maszynista ${driver.name} czeka na stacji. Ruszamy w kolejną podróż?`
+          : `Maszynista ${driver.name} zaprasza do pociągu. Ruszamy w podróż?`;
+      }
+      if (state.passengersCount === passengers.length) {
+        return "Wszyscy przyjaciele są na pokładzie. Ruszajmy w świat!";
+      }
+      {
+        const currentPassenger =
+          ALL_ANIMALS[passengers[state.passengersCount - 1]];
+        return `${currentPassenger.name} już wygodnie siedzi. Jedziemy dalej?`;
+      }
+    case "boarding": {
+      const boarded = ALL_ANIMALS[passengers[state.passengersCount - 1]];
+      return `${boarded.name} wsiada do wagonika i macha do Ciebie!`;
+    }
+    case "arriving": {
+      const stop = state.plan.stops[state.stop];
+      const waitingFriend =
+        state.stop > 0 ? ALL_ANIMALS[passengers[state.stop - 1]] : null;
+      return waitingFriend
+        ? `${stop.name}. ${waitingFriend.name} już na nas czeka!`
+        : `${stop.name}.`;
+    }
+    case "touring": {
+      const loc = ALL_LOCATIONS[state.plan.tour[state.tourIndex]];
+      return loc
+        ? `${loc.name} – ${loc.teaser.toLowerCase()}...`
+        : "Podróżujemy przez piękny krajobraz...";
+    }
     case "returning":
-      return "A teraz wracamy do domu. Dobrze by\u0142o by\u0107 razem.";
+      return "Wracamy do Stacji Artura. Dobrze było być razem.";
     case "unboarding":
-      return "Do zobaczenia, przyjaciele!";
+      return "Do zobaczenia, kochani przyjaciele!";
     default:
       return state.isTour
-        ? "Wszyscy razem. Przed nami ca\u0142y ma\u0142y \u015bwiat."
-        : "Ko\u0142a si\u0119 tocz\u0105. Nowy przyjaciel ju\u017c czeka.";
+        ? "Koła się toczą. Wszyscy razem podziwiamy świat."
+        : "Koła się toczą. Kolejny przyjaciel już wypatruje pociągu.";
   }
+}
+
+// ARIA announcement for screen readers giving calm situational awareness
+export function journeyAriaAnnouncement(state: JourneyState): string {
+  if (state.isResting) {
+    return "Pora na odpoczynek. Pociąg śpi pod gwiazdami.";
+  }
+  const message = journeyMessage(state);
+  const teaser = nextStopTeaser(state);
+  if (state.phase === "waiting") {
+    return `${message} ${teaser ? teaser : ""} Naciśnij Enter lub dotknij przycisku, aby ruszyć.`;
+  }
+  return `Pociąg w drodze. ${message} Przycisk chwilowo odpoczywa.`;
 }
