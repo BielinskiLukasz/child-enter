@@ -1,26 +1,5 @@
 @import "tailwindcss";
-
-@font-face {
-  font-family: "DM Sans";
-  src: url("./assets/dm-sans.ttf") format("truetype");
-  font-weight: 400 700;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Fraunces";
-  src: url("./assets/fraunces.ttf") format("truetype");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Fraunces";
-  src: url("./assets/fraunces-italic.ttf") format("truetype");
-  font-weight: 500;
-  font-style: italic;
-  font-display: swap;
-}
+@import "./fonts.css";
 
 :root {
   font-family: "DM Sans", sans-serif;
@@ -179,6 +158,9 @@ body {
   color: #64705b;
   font-size: 14px;
 }
+.invitation-prefix--touch {
+  display: none;
+}
 .enter-key {
   width: 119px;
   height: 48px;
@@ -194,10 +176,31 @@ body {
   font:
     500 15px "DM Sans",
     sans-serif;
+  cursor: pointer;
+  appearance: none;
+  /* A finger press must not select text, zoom, highlight or open a menu. */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
   transition:
     opacity 0.8s,
     transform 0.6s,
-    border-color 0.8s;
+    border-color 0.8s,
+    background 0.4s;
+}
+.enter-key:focus-visible {
+  outline: 3px solid #9fb08e;
+  outline-offset: 4px;
+}
+.enter-key:active {
+  animation: none;
+  background: #f4f1e0;
+  border-bottom-width: 2px;
+  box-shadow:
+    0 1px 0 #e7e7d4,
+    inset 0 1px 0 #fffef8;
+  transform: translateY(2px);
+  transition-duration: 0.06s;
 }
 .is-travelling .keyboard-invitation {
   opacity: 0.38;
@@ -751,6 +754,121 @@ body {
     display: none;
   }
 }
+
+/* Touch devices: the key becomes a big, calm button for a small finger. */
+@media (hover: none) and (pointer: coarse) {
+  .invitation-prefix--key {
+    display: none;
+  }
+  .invitation-prefix--touch {
+    display: inline;
+  }
+  .keyboard-invitation {
+    flex-wrap: wrap;
+    gap: 10px 12px;
+  }
+  .enter-key {
+    width: min(280px, 72vw);
+    height: 74px;
+    border-radius: 18px;
+    border-bottom-width: 7px;
+    box-shadow:
+      0 5px 0 #e7e7d4,
+      inset 0 1px 0 #fffef8;
+    font-size: 23px;
+    gap: 14px;
+  }
+  .enter-key svg {
+    width: 29px;
+    height: 25px;
+  }
+  .enter-key:active {
+    border-bottom-width: 3px;
+    box-shadow:
+      0 1px 0 #e7e7d4,
+      inset 0 1px 0 #fffef8;
+    transform: translateY(4px);
+  }
+  .invitation-prefix,
+  .invitation-suffix {
+    flex-basis: 100%;
+  }
+  .invitation-suffix {
+    order: 3;
+  }
+  .patient-note {
+    margin-top: 14px;
+  }
+}
+@media (hover: none) and (pointer: coarse) and (max-width: 1000px) {
+  .journey-invitation {
+    bottom: 48px;
+  }
+  .landscape {
+    bottom: 290px;
+  }
+}
+/* A phone held sideways is short: shrink the words, keep the picture and key. */
+@media (hover: none) and (pointer: coarse) and (max-height: 560px) {
+  /* Everything has to fit the short screen: a child should never scroll. */
+  .little-world {
+    min-height: 0;
+  }
+  .introduction {
+    top: 9%;
+  }
+  .intro-flourish {
+    display: none;
+  }
+  .introduction h1 {
+    font-size: clamp(30px, 6vw, 44px);
+    letter-spacing: -1.5px;
+  }
+  .introduction h1 em {
+    display: inline;
+  }
+  .introduction > p {
+    display: none;
+  }
+  .landscape {
+    inset: 20% 9% 168px;
+  }
+  .journey-invitation {
+    bottom: 16px;
+  }
+  .journey-message {
+    min-height: 15px;
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+  .keyboard-invitation {
+    gap: 6px 10px;
+  }
+  .invitation-prefix,
+  .invitation-suffix {
+    font-size: 11px;
+  }
+  .enter-key {
+    width: min(240px, 44vw);
+    height: 54px;
+    font-size: 18px;
+  }
+  .enter-key svg {
+    width: 24px;
+    height: 21px;
+  }
+  .patient-note,
+  .page-footer {
+    display: none;
+  }
+}
+/* A wide, short screen needs the picture narrower so nothing is covered. */
+@media (hover: none) and (pointer: coarse) and (max-height: 560px) and (min-width: 761px) {
+  .landscape {
+    inset: 18% 16% 182px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

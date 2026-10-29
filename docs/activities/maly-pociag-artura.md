@@ -16,11 +16,15 @@ A quiet cause-and-effect activity for three-year-old Artur. A predictable journe
 
 ## Controls And Rules
 
-- Enter and numeric-keypad Enter are equivalent and are the only controls.
-- Each key press starts at most one trip. Holding the key, keyboard auto-repeat and extra key presses during travel or boarding do not queue actions.
-- Mouse clicks, touch, stylus, other keys and the illustrated Enter keycap do not advance the game. The keycap is a visual instruction, not a button.
+- The Enter key, the numeric-keypad Enter key and the on-screen Enter button are equivalent, and are the only controls.
+- Each press or tap starts at most one trip. Holding the key, keyboard auto-repeat, repeated taps, a long press and input during travel or boarding never queue actions.
+- Mouse clicks and touches anywhere else, including the picture, the title and the text, do nothing. Other keys do nothing.
 - Every waiting state lasts until the child is ready. There are no deadlines, counters, rewards, failure states or sounds.
-- An external keyboard is required on tablets and phones.
+- No keyboard is needed: a phone or tablet is operated with the on-screen button alone.
+
+## Touch Devices
+
+The on-screen key is a real button, at least 74 px tall and up to 280 px wide on touch devices, centred at the bottom of the screen within easy thumb reach. On touch devices the instruction reads "Dotknij" instead of "Naciśnij". Double-tap zoom, pinch zoom, the tap highlight, text selection and the long-press context menu are suppressed so a child cannot leave the activity or resize it by accident. Pressing shows a short pressed state. Short landscape screens use a compact layout: the heading shrinks, the subtitle, patient note and footer are hidden, and the picture is narrowed so no text overlaps it and nothing scrolls.
 
 ## Configuration
 
@@ -37,7 +41,7 @@ There are no child-facing settings. Stops, passenger order and state durations l
 
 ## Technical Details
 
-React renders a single full-bleed SVG storybook scene. `journeyReducer` defines the finite-state sequence and rejects Enter outside a waiting state. A keyboard-held latch and `KeyboardEvent.repeat` suppress auto-repeat. A visibility-aware timer retains remaining time when the document is hidden. CSS handles parallax, wheels, steam, waves, gentle boarding and scene crossfades. All timing and round state stay in memory.
+React renders a single full-bleed SVG storybook scene. `journeyReducer` defines the finite-state sequence and rejects Enter outside a waiting state, so taps and key presses during a trip are discarded rather than queued. A keyboard-held latch and `KeyboardEvent.repeat` suppress auto-repeat. The button dispatches the same action as the key; clicks that a browser synthesises for a focused button from a keyboard carry `detail === 0` and are ignored there, so a key press is never counted twice. A finger or stylus release blurs the button so no focus ring is left behind. A visibility-aware timer retains remaining time when the document is hidden. CSS handles parallax, wheels, steam, waves, gentle boarding and scene crossfades. All timing and round state stay in memory.
 
 The production build uses the existing Vite single-file plugin. `dist/index.html` embeds JavaScript, CSS, SVG and fonts; opening the file needs no server or external requests.
 
@@ -49,9 +53,11 @@ The production build uses the existing Vite single-file plugin. `dist/index.html
 4. Press Enter with all carriages occupied. Check the forest, village, mountains, return home, farewell and empty reset. Start another round.
 5. Hold Enter through a full trip. Confirm it does not start another trip at the next station until released and pressed again.
 6. Repeatedly press Enter during travel and boarding. Confirm no extra trip is queued and no animal is skipped.
-7. Click or tap the train, landscape and Enter keycap; press Space, arrows, letters and Escape. Confirm none advances the story.
+7. Click or tap the train, landscape, heading and text; press Space, arrows, letters and Escape. Confirm none advances the story.
+   7a. On a phone, run a whole round using only the on-screen button. Check that the button is easy to hit with a thumb, that the instruction reads "Dotknij", that quick repeated taps and a long press start only one trip, and that double-tapping it does not zoom the page.
+   7b. Turn the phone to landscape. Check that the picture, message and button all fit without scrolling and that no text covers the train.
 8. Hide the tab halfway through departure for at least 20 s. Return and check that it resumes with the remaining phase time.
 9. Enable reduced motion. Confirm all passengers and landscapes still appear without continuous movement.
 10. Check portrait mobile, tablet and desktop widths. Confirm all three carriages and the keyboard instruction remain visible.
 11. Disconnect from the network and open `dist/index.html` directly. Repeat a complete round and check for no remote requests.
-12. Repeat on Chrome desktop, Chrome Android with an external keyboard and Safari on iPhone/iPad with an external keyboard. Physical Android and Safari checks are not covered by the Chromium automation.
+12. Repeat on Chrome desktop, Chrome Android and Safari on iPhone/iPad, each by touch and, where available, with a keyboard. Physical Android and Safari checks are not covered by the Chromium automation.

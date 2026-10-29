@@ -4,6 +4,8 @@ import {
   useReducer,
   useRef,
   useState,
+  type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent,
 } from "react";
 import { Illustration } from "./components/Illustration";
 import {
@@ -128,6 +130,19 @@ export default function App() {
     "touring",
     "returning",
   ].includes(journey.phase);
+
+  // The on-screen key is the touch equivalent of the Enter key. Clicks that a
+  // browser synthesises from a focused button and the keyboard carry detail 0
+  // and are skipped here, because the window listener already handled them.
+  const onKeyTap = (event: ReactMouseEvent<HTMLButtonElement>) => {
+    if (event.detail === 0) return;
+    dispatch({ type: "ENTER" });
+  };
+  // A finger or stylus should not leave a focus ring behind on the key.
+  const onKeyRelease = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    if (event.pointerType !== "mouse") event.currentTarget.blur();
+  };
+
   return (
     <main
       className={`little-world relative isolate overflow-hidden ${moving ? "is-moving" : ""} ${!visible ? "is-paused" : ""}`}
@@ -189,10 +204,20 @@ export default function App() {
           <span key={journeyMessage(journey)}>{journeyMessage(journey)}</span>
         </p>
         <div className="keyboard-invitation flex items-center justify-center">
-          <span className="invitation-prefix">Naci&#347;nij</span>
-          <kbd
+          <span className="invitation-prefix invitation-prefix--key">
+            Naci&#347;nij
+          </span>
+          <span className="invitation-prefix invitation-prefix--touch">
+            Dotknij
+          </span>
+          <button
+            type="button"
             className="enter-key flex items-center justify-center gap-4"
-            aria-label="Enter"
+            aria-label={"Enter. Ruszamy w drog\u0119."}
+            aria-disabled={!waiting}
+            onClick={onKeyTap}
+            onPointerUp={onKeyRelease}
+            onContextMenu={(event) => event.preventDefault()}
           >
             Enter
             <svg
@@ -210,7 +235,7 @@ export default function App() {
                 strokeLinejoin="round"
               />
             </svg>
-          </kbd>
+          </button>
           <span className="invitation-suffix">i ruszajmy w drog&#281;</span>
         </div>
         <p className="patient-note">

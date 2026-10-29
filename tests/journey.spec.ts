@@ -60,9 +60,11 @@ test("Enter is the only input, held keys are ignored, and a full journey can be 
   await page.goto("/");
   const world = page.locator("main");
   await expect(page).toHaveTitle(/Artura/);
+  // The Enter key is the only control on the page.
   await expect(page.locator('button, a, input, [role="button"]')).toHaveCount(
-    0,
+    1,
   );
+  await expect(page.locator("button")).toHaveClass(/enter-key/);
   await page.mouse.click(720, 600);
   for (const key of ["Space", "ArrowRight", "Escape", "a"])
     await page.keyboard.press(key);
@@ -102,6 +104,138 @@ test("Enter is the only input, held keys are ignored, and a full journey can be 
   await page.keyboard.press("Enter");
   await collectFriend(page, 1);
   expect(errors).toEqual([]);
+});
+
+test.describe("on a touch phone without a keyboard", () => {
+  test.use({
+    hasTouch: true,
+    isMobile: true,
+    viewport: { width: 390, height: 844 },
+  });
+
+  test("the visible Enter button runs the whole journey by finger", async ({
+    page,
+  }) => {
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page.clock.install();
+    await page.goto("/");
+    const world = page.locator("main");
+    const enterKey = page.locator(".enter-key");
+
+    // The button is visible, says "Enter" and is big enough for a small finger.
+    await expect(enterKey).toBeInViewport();
+    await expect(enterKey).toContainText("Enter");
+    await expect(page.locator(".invitation-prefix--touch")).toBeVisible();
+    await expect(page.locator(".invitation-prefix--key")).toBeHidden();
+    const key = (await enterKey.boundingBox())!;
+    expect(key.width).toBeGreaterThanOrEqual(44);
+    expect(key.height).toBeGreaterThanOrEqual(44);
+    const tapKey = () =>
+      page.touchscreen.tap(key.x + key.width / 2, key.y + key.height / 2);
+
+    // Touching the scenery, the train or the heading changes nothing.
+    const scene = (await page.locator(".landscape").boundingBox())!;
+    await page.touchscreen.tap(scene.x + scene.width / 2, scene.y + 60);
+    const title = (await page.locator("h1").boundingBox())!;
+    await page.touchscreen.tap(title.x + title.width / 2, title.y + 20);
+    await page.clock.runFor(8000);
+    await expect(world).toHaveAttribute("data-phase", "waiting");
+
+    for (let friend = 1; friend <= 3; friend++) {
+      await tapKey();
+      await collectFriend(page, friend);
+    }
+    await expect(page.locator(".passenger")).toHaveCount(3);
+
+    await tapKey();
+    await advance(page, "departing");
+    for (const landscape of ["forest", "village", "mountains"]) {
+      await expect(world).toHaveAttribute("data-landscape", landscape);
+      await advance(page, "touring");
+    }
+    await advance(page, "returning");
+    await advance(page, "unboarding");
+    await expect(world).toHaveAttribute("data-journeys", "1");
+    await expect(world).toHaveAttribute("data-passengers", "0");
+    expect(errors).toEqual([]);
+  });
+
+  test("repeated taps and a long press never queue extra journeys", async ({
+    page,
+  }) => {
+    await page.clock.install();
+    await page.goto("/");
+    const world = page.locator("main");
+    const key = (await page.locator(".enter-key").boundingBox())!;
+    const centre = { x: key.x + key.width / 2, y: key.y + key.height / 2 };
+
+    // An excited child drumming on the button still starts only one journey.
+    for (let tap = 0; tap < 5; tap++)
+      await page.touchscreen.tap(centre.x, centre.y);
+    await advance(page, "departing");
+    await advance(page, "travelling");
+    await advance(page, "arriving");
+    await advance(page, "boarding");
+    await expect(world).toHaveAttribute("data-phase", "waiting");
+    await expect(world).toHaveAttribute("data-passengers", "1");
+
+    // A long press counts once and does not repeat while the finger rests.
+    await page.touchscreen.tap(centre.x, centre.y);
+    await expect(world).toHaveAttribute("data-phase", "departing");
+    await page.clock.runFor(1000);
+    await page.touchscreen.tap(centre.x, centre.y);
+    await page.clock.runFor(1010);
+    await expect(world).toHaveAttribute("data-phase", "travelling");
+    await page.clock.runFor(60000);
+    await expect(world).toHaveAttribute("data-phase", "waiting");
+    await expect(world).toHaveAttribute("data-passengers", "2");
+  });
+});
+
+test.describe("a phone held sideways", () => {
+  test.use({
+    hasTouch: true,
+    isMobile: true,
+    viewport: { width: 863, height: 360 },
+  });
+
+  test("fits the short screen, so a child never has to scroll", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await expect(page.locator(".enter-key")).toBeInViewport({ ratio: 1 });
+    const layout = await page.evaluate(() => ({
+      scrolls: document.documentElement.scrollHeight > window.innerHeight + 1,
+      wide: document.documentElement.scrollWidth > window.innerWidth + 1,
+      trainBottom: document.querySelector(".train")!.getBoundingClientRect()
+        .bottom,
+      messageTop: document
+        .querySelector(".journey-message")!
+        .getBoundingClientRect().top,
+    }));
+    expect(layout.scrolls).toBe(false);
+    expect(layout.wide).toBe(false);
+    // The words must not sit on top of the picture.
+    expect(layout.messageTop).toBeGreaterThan(layout.trainBottom);
+  });
+});
+
+test("a focused Enter button does not advance the journey twice", async ({
+  page,
+}) => {
+  await page.clock.install();
+  await page.goto("/");
+  await page.locator(".enter-key").focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("main")).toHaveAttribute("data-phase", "departing");
+  await page.clock.runFor(2010);
+  await expect(page.locator("main")).toHaveAttribute(
+    "data-phase",
+    "travelling",
+  );
+  await page.clock.runFor(2210);
+  await expect(page.locator("main")).toHaveAttribute("data-phase", "arriving");
 });
 
 test("the story pauses when hidden and resumes with its remaining time", async ({
