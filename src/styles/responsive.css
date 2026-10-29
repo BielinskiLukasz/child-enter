@@ -1,0 +1,400 @@
+/* Responsive Media Queries */
+@media (min-width: 1800px) {
+  .introduction {
+    top: 14%;
+  }
+  .landscape {
+    inset: 26% 0 150px;
+  }
+  .journey-invitation {
+    bottom: 77px;
+  }
+}
+
+@media (max-height: 820px) and (min-width: 761px) {
+  .little-world {
+    min-height: 680px;
+  }
+  .site-header {
+    padding-top: 18px;
+  }
+  .introduction {
+    top: 13%;
+  }
+  .intro-flourish {
+    margin-bottom: 8px;
+  }
+  .introduction h1 {
+    font-size: clamp(48px, 4.5vw, 68px);
+  }
+  .intro-subtitle {
+    margin-top: 10px;
+    font-size: 14px;
+  }
+  .landscape {
+    inset: 25% 0 120px;
+  }
+  .journey-invitation {
+    bottom: 49px;
+  }
+  .journey-message {
+    margin-bottom: 8px;
+    font-size: 15px;
+  }
+  .enter-key {
+    height: 46px;
+    width: 114px;
+  }
+  .patient-note {
+    margin-top: 11px;
+  }
+  .page-footer {
+    bottom: 17px;
+  }
+}
+
+@media (max-width: 1000px) {
+  .little-world {
+    min-height: 720px;
+  }
+  .site-header {
+    padding: 16px 20px;
+  }
+  .quiet-note {
+    font-size: 12px;
+    gap: 6px;
+  }
+  .quiet-note svg {
+    width: 15px;
+    height: 15px;
+  }
+  .introduction {
+    top: 15%;
+  }
+  .introduction h1 {
+    max-width: 580px;
+    margin: auto;
+    font-size: clamp(42px, 7.5vw, 58px);
+    letter-spacing: -2px;
+  }
+  .intro-subtitle {
+    max-width: 360px;
+    margin: 12px auto 0;
+    font-size: 14px;
+  }
+  .intro-flourish {
+    margin-bottom: 12px;
+  }
+  .landscape {
+    inset: 32% -3% 160px;
+  }
+  .world-illustration {
+    position: absolute;
+    bottom: 0;
+    height: auto;
+    overflow: visible;
+  }
+  .journey-invitation {
+    bottom: 78px;
+  }
+  .journey-message {
+    max-width: 440px;
+    margin: 0 auto 10px;
+    font-size: 15px;
+  }
+  .keyboard-invitation {
+    font-size: 14px;
+    gap: 11px;
+  }
+  .enter-key {
+    width: 110px;
+    height: 48px;
+    font-size: 15px;
+    gap: 12px;
+  }
+  .patient-note {
+    margin-top: 14px;
+    font-size: 12px;
+  }
+  .page-footer {
+    left: 20px;
+    right: 20px;
+    bottom: 22px;
+    font-size: 12px;
+  }
+  .footer-left {
+    max-width: 180px;
+    gap: 5px;
+  }
+  .footer-right {
+    font-size: 12px;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 1000px) and (orientation: portrait) {
+  .introduction h1 {
+    font-size: clamp(50px, 8vw, 68px);
+  }
+  .introduction h1 em {
+    display: block;
+  }
+  .intro-subtitle {
+    font-size: 15px;
+  }
+  .scenery {
+    transform: scaleY(1.4);
+    transform-origin: 800px 400px;
+  }
+}
+
+@media (max-width: 480px) {
+  .little-world {
+    min-height: 700px;
+  }
+  .quiet-note span {
+    display: none;
+  }
+  .introduction {
+    top: 15%;
+  }
+  .introduction h1 {
+    max-width: 340px;
+    font-size: 44px;
+    line-height: 1.08;
+  }
+  .introduction h1 em {
+    display: block;
+  }
+  .intro-subtitle {
+    max-width: 290px;
+  }
+  .landscape {
+    inset: 36% -11% 165px;
+  }
+  .scenery {
+    transform: scaleY(1.8);
+    transform-origin: 800px 400px;
+  }
+  .journey-invitation {
+    bottom: 72px;
+  }
+  .journey-message {
+    max-width: 320px;
+    font-size: 14px;
+  }
+  .keyboard-invitation {
+    gap: 9px;
+    font-size: 13px;
+  }
+  .enter-key {
+    width: 105px;
+  }
+  .page-footer {
+    font-size: 11px;
+  }
+}
+
+@media (max-height: 600px) and (min-width: 761px) {
+  .little-world {
+    min-height: 390px;
+  }
+  .site-header {
+    padding: 12px 24px;
+  }
+  .introduction {
+    top: 15%;
+  }
+  .intro-flourish {
+    display: none;
+  }
+  .introduction h1 {
+    font-size: clamp(36px, 7.5vh, 50px);
+  }
+  .intro-subtitle {
+    margin-top: 6px;
+    max-width: none;
+    font-size: 12px;
+  }
+  .landscape {
+    inset: 24% 0 120px;
+  }
+  .world-illustration {
+    position: static;
+    height: 100%;
+  }
+  .journey-invitation {
+    bottom: 30px;
+  }
+  .journey-message {
+    margin-bottom: 4px;
+    min-height: 16px;
+    font-size: 13px;
+  }
+  .keyboard-invitation {
+    font-size: 13px;
+  }
+  .enter-key {
+    width: 100px;
+    height: 38px;
+    font-size: 13px;
+  }
+  .patient-note {
+    margin-top: 6px;
+    font-size: 11px;
+  }
+  .page-footer {
+    bottom: 8px;
+    font-size: 11px;
+  }
+}
+
+@media (max-height: 450px) and (min-width: 761px) {
+  .patient-note {
+    display: none;
+  }
+}
+
+/* Touch devices: the key becomes a big, calm button for a small finger */
+@media (hover: none) and (pointer: coarse) {
+  .invitation-prefix--key {
+    display: none;
+  }
+  .invitation-prefix--touch {
+    display: inline;
+  }
+  .keyboard-invitation {
+    flex-wrap: wrap;
+    gap: 10px 12px;
+  }
+  .enter-key {
+    width: min(280px, 72vw);
+    height: 74px;
+    border-radius: 18px;
+    border-bottom-width: 7px;
+    box-shadow:
+      0 5px 0 #dedec5,
+      inset 0 1px 0 #fffef8;
+    font-size: 23px;
+    gap: 14px;
+  }
+  .enter-key svg {
+    width: 29px;
+    height: 25px;
+  }
+  .enter-key:active {
+    border-bottom-width: 3px;
+    box-shadow:
+      0 1px 0 #dedec5,
+      inset 0 1px 0 #fffef8;
+    transform: translateY(4px);
+  }
+  .invitation-prefix,
+  .invitation-suffix {
+    flex-basis: 100%;
+  }
+  .invitation-suffix {
+    order: 3;
+  }
+  .patient-note {
+    margin-top: 14px;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) and (max-width: 1000px) {
+  .journey-invitation {
+    bottom: max(44px, calc(env(safe-area-inset-bottom, 0px) + 38px));
+  }
+  .landscape {
+    bottom: 290px;
+  }
+  /* The big touch key plus the wrapping parent strip leave no room for the
+     decorative footer; hiding it keeps the patient note clear of it. */
+  .page-footer {
+    display: none;
+  }
+}
+
+/* A phone held sideways is short: shrink words, keep picture and key */
+@media (hover: none) and (pointer: coarse) and (max-height: 560px) {
+  .little-world {
+    min-height: 0;
+  }
+  .parent-value-strip {
+    display: none;
+  }
+  .introduction {
+    top: 8%;
+  }
+  .intro-flourish {
+    display: none;
+  }
+  .introduction h1 {
+    font-size: clamp(28px, 5.5vw, 40px);
+    letter-spacing: -1.5px;
+  }
+  .introduction h1 em {
+    display: inline;
+  }
+  .intro-subtitle {
+    display: none;
+  }
+  .landscape {
+    inset: 18% 8% 145px;
+  }
+  .journey-invitation {
+    bottom: 12px;
+  }
+  .journey-message {
+    min-height: 15px;
+    margin-bottom: 6px;
+    font-size: 13px;
+  }
+  .journey-teaser {
+    display: none;
+  }
+  .keyboard-invitation {
+    gap: 6px 10px;
+  }
+  .invitation-prefix,
+  .invitation-suffix {
+    font-size: 12px;
+  }
+  .enter-key {
+    width: min(240px, 44vw);
+    height: 52px;
+    font-size: 18px;
+  }
+  .enter-key svg {
+    width: 24px;
+    height: 21px;
+  }
+  .patient-note,
+  .page-footer {
+    display: none;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) and (max-height: 560px) and (min-width: 761px) {
+  .landscape {
+    inset: 16% 16% 160px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0s !important;
+  }
+  .steam-puff {
+    opacity: 0.5;
+  }
+  .station--departing {
+    opacity: 0;
+  }
+  .passenger--leaving {
+    opacity: 0;
+  }
+}

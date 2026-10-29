@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useLayoutEffect,
   useReducer,
   useRef,
@@ -6,16 +7,18 @@ import {
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
 } from "react";
-import { Illustration } from "./components/Illustration";
+import { Illustration } from "./components/illustration/Illustration";
 import { ParentValueStrip } from "./components/ParentValueStrip";
 import { ParentModal } from "./components/ParentModal";
 import { RestScreen } from "./components/RestScreen";
 import { useJourneyClock } from "./hooks/useJourneyClock";
 import { useAtmosphere } from "./hooks/useAtmosphere";
+import { useActivePlaytime } from "./hooks/useActivePlaytime";
 import {
   createInitialJourney,
   currentLandscape,
   currentStop,
+  generateSessionPlan,
   journeyMessage,
   journeyReducer,
   nextStopTeaser,
@@ -28,9 +31,10 @@ function SunMark({ onLongPressTrigger }: { onLongPressTrigger?: () => void }) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const startPress = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
       onLongPressTrigger?.();
-    }, 2500);
+    }, 3000);
   };
 
   const cancelPress = () => {
@@ -41,18 +45,22 @@ function SunMark({ onLongPressTrigger }: { onLongPressTrigger?: () => void }) {
   };
 
   return (
-    <div
+    <button
+      type="button"
       className="world-brand-icon cursor-pointer select-none"
       onPointerDown={startPress}
       onPointerUp={cancelPress}
+      onPointerCancel={cancelPress}
       onPointerLeave={cancelPress}
-      title="Mały pociąg Artura. Przytrzymaj 3 sekundy, aby otworzyć panel rodzica."
+      onClick={(event) => event.preventDefault()}
+      onContextMenu={(event) => event.preventDefault()}
+      aria-label="Mały pociąg Artura. Przytrzymaj 3 sekundy, aby otworzyć ustawienia rodzica."
+      title="Przytrzymaj 3 sekundy, aby otworzyć panel rodzica"
     >
       <svg
         viewBox="0 0 44 44"
         fill="none"
-        role="img"
-        aria-label="Mały pociąg Artura"
+        aria-hidden="true"
         className="w-11 h-11"
       >
         <path
@@ -69,7 +77,7 @@ function SunMark({ onLongPressTrigger }: { onLongPressTrigger?: () => void }) {
         <circle cx="18.5" cy="19.5" r="1" fill="#59705b" />
         <circle cx="25.5" cy="19.5" r="1" fill="#59705b" />
       </svg>
-    </div>
+    </button>
   );
 }
 
@@ -100,10 +108,11 @@ function QuietMark() {
 
 export default function App() {
   const [journey, dispatch] = useReducer(journeyReducer, undefined, () =>
-    createInitialJourney(),
+    createInitialJourney(generateSessionPlan()),
   );
   const [visible, setVisible] = useState(!document.hidden);
   const [parentModalOpen, setParentModalOpen] = useState(false);
+  const [playtimeExtensionMs, setPlaytimeExtensionMs] = useState(0);
   const enterHeld = useRef(false);
 
   const waiting = journey.phase === "waiting" && !journey.isResting;
@@ -112,16 +121,28 @@ export default function App() {
   const driverAnimal = ALL_ANIMALS[journey.plan.driver];
   const teaser = nextStopTeaser(journey);
 
-  // Keyboard navigation & Parent Escape Hatch (Escape / Ctrl+Esc)
+  // Keyboard navigation. Native dialogs own Escape while they are open.
   useLayoutEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        if (parentModalOpen || journey.isResting) return;
         event.preventDefault();
-        setParentModalOpen((prev) => !prev);
+        setParentModalOpen(true);
         return;
       }
 
       if (event.key !== "Enter" || event.isComposing) return;
+      if (parentModalOpen || journey.isResting) return;
+      const target = event.target;
+      if (
+        target instanceof Element &&
+        !target.closest(".enter-key") &&
+        target.closest(
+          "button, input, select, textarea, [contenteditable='true']",
+        )
+      ) {
+        return;
+      }
       event.preventDefault();
       if (event.repeat || enterHeld.current) return;
       enterHeld.current = true;
@@ -148,11 +169,33 @@ export default function App() {
       window.removeEventListener("blur", onBlur);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, []);
+  }, [parentModalOpen, journey.isResting]);
 
   const world = useRef<HTMLElement | null>(null);
-  const clock = useJourneyClock(journey, dispatch);
+  const advancePhase = useCallback(() => {
+    dispatch(
+      journey.phase === "unboarding"
+        ? { type: "ADVANCE", nextPlan: generateSessionPlan() }
+        : { type: "ADVANCE" },
+    );
+  }, [journey.phase]);
+  const clock = useJourneyClock(journey, advancePhase);
   const initialConditions = useAtmosphere(journey, clock, world);
+  const activePlaytimeMs = useActivePlaytime(visible && !journey.isResting);
+  const configuredLimitMs = journey.settings.playtimeLimitMinutes * 60_000;
+  const playtimeLimitMs = configuredLimitMs + playtimeExtensionMs;
+  const playtimeRatio =
+    configuredLimitMs > 0 ? Math.min(1, activePlaytimeMs / playtimeLimitMs) : 0;
+
+  useLayoutEffect(() => {
+    if (
+      !journey.isResting &&
+      configuredLimitMs > 0 &&
+      activePlaytimeMs >= playtimeLimitMs
+    ) {
+      dispatch({ type: "SET_REST", isResting: true, reason: "playtime" });
+    }
+  }, [activePlaytimeMs, configuredLimitMs, journey.isResting, playtimeLimitMs]);
 
   const moving = [
     "departing",
@@ -172,7 +215,7 @@ export default function App() {
   };
 
   const handleResetSession = () => {
-    dispatch({ type: "RESET_SESSION" });
+    dispatch({ type: "RESET_SESSION", plan: generateSessionPlan() });
   };
 
   const handleUpdateSettings = (newSettings: Partial<JourneySettings>) => {
@@ -180,17 +223,21 @@ export default function App() {
   };
 
   const handleTriggerRest = () => {
-    dispatch({ type: "SET_REST", isResting: true });
+    dispatch({ type: "SET_REST", isResting: true, reason: "parent" });
   };
 
   const handleDismissRest = () => {
+    if (journey.restReason === "playtime" && configuredLimitMs > 0) {
+      // A parent-approved continuation grants one more configured time window.
+      setPlaytimeExtensionMs((current) => current + configuredLimitMs);
+    }
     dispatch({ type: "SET_REST", isResting: false });
   };
 
   return (
     <main
       ref={world}
-      className={`little-world relative isolate overflow-hidden ${moving ? "is-moving" : ""} ${!visible ? "is-paused" : ""}`}
+      className={`little-world relative isolate overflow-hidden ${moving ? "is-moving" : ""} ${!visible ? "is-paused" : ""} ${playtimeRatio >= 0.8 && !journey.isResting ? "time-near-limit" : ""}`}
       data-phase={journey.phase}
       data-passengers={journey.passengersCount}
       data-landscape={landscape}
@@ -208,11 +255,38 @@ export default function App() {
 
       <header className="site-header flex items-center justify-between">
         {/* The hero heading carries the name, so the mark stays wordless here. */}
-        <div className="world-brand flex items-center gap-3">
-          <SunMark onLongPressTrigger={() => setParentModalOpen(true)} />
-        </div>
+        <SunMark onLongPressTrigger={() => setParentModalOpen(true)} />
         <div className="flex items-center gap-4">
           <div className="quiet-note flex items-center gap-2">
+            {configuredLimitMs > 0 && (
+              <span
+                className="playtime-hourglass"
+                role="img"
+                aria-label="Rodzic ustawił limit aktywnego czasu zabawy"
+                title="Czas zabawy ograniczony przez rodzica"
+              >
+                <svg
+                  width="15"
+                  height="18"
+                  viewBox="0 0 16 20"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M3 1h10M3 19h10M4 2c0 4 1 5 4 8-3 3-4 4-4 8m8-16c0 4-1 5-4 8 3 3 4 4 4 8"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M5.5 4h5M5.5 16h5"
+                    stroke="currentColor"
+                    strokeWidth="1.3"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </span>
+            )}
             <QuietMark />
             <span className="text-xs">Zawsze bez dźwięku</span>
           </div>
@@ -264,7 +338,7 @@ export default function App() {
         className={`journey-invitation text-center ${waiting ? "is-ready" : "is-travelling"}`}
         aria-label="Podróż"
       >
-        <p className="journey-message" aria-live="polite" aria-atomic="true">
+        <p className="journey-message">
           <span key={journeyMessage(journey)}>{journeyMessage(journey)}</span>
         </p>
 
@@ -335,7 +409,9 @@ export default function App() {
       </footer>
 
       {/* Rest Screen Overlay */}
-      {journey.isResting && <RestScreen onContinue={handleDismissRest} />}
+      {journey.isResting && (
+        <RestScreen onOpenParent={() => setParentModalOpen(true)} />
+      )}
 
       {/* Parent Modal & Gate */}
       <ParentModal
@@ -343,6 +419,9 @@ export default function App() {
         onClose={() => setParentModalOpen(false)}
         onResetSession={handleResetSession}
         onTriggerRest={handleTriggerRest}
+        isResting={journey.isResting}
+        restReason={journey.restReason}
+        onContinueAfterRest={handleDismissRest}
         settings={journey.settings}
         onUpdateSettings={handleUpdateSettings}
       />

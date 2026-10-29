@@ -40,76 +40,52 @@ export interface StopDefinition {
 export interface AnimalDefinition {
   kind: AnimalKind;
   name: string;
-  genitive: string; // e.g. "Króliczka", "Liska", "Misia"
-  description: string;
 }
 
 export const ALL_ANIMALS: Record<AnimalKind, AnimalDefinition> = {
   rabbit: {
     kind: "rabbit",
     name: "Króliczek",
-    genitive: "Króliczka",
-    description: "z długimi uszkami",
   },
   fox: {
     kind: "fox",
     name: "Lisek",
-    genitive: "Liska",
-    description: "z rudym pyszczkiem",
   },
   bear: {
     kind: "bear",
     name: "Miś",
-    genitive: "Misia",
-    description: "o miękkim futerku",
   },
   hedgehog: {
     kind: "hedgehog",
     name: "Jeżyk",
-    genitive: "Jeżyka",
-    description: "z małymi kolcami",
   },
   owl: {
     kind: "owl",
     name: "Sówka",
-    genitive: "Sówki",
-    description: "z mądrymi oczami",
   },
   squirrel: {
     kind: "squirrel",
     name: "Wiewiórka",
-    genitive: "Wiewiórki",
-    description: "z puszystym ogonkiem",
   },
   cat: {
     kind: "cat",
     name: "Kotek",
-    genitive: "Kotka",
-    description: "z wesołymi wąsikami",
   },
   dog: {
     kind: "dog",
     name: "Piesek",
-    genitive: "Pieska",
-    description: "z merdającym ogonkiem",
   },
   frog: {
     kind: "frog",
     name: "Żabka",
-    genitive: "Żabki",
-    description: "w zielonym kubraczku",
   },
   badger: {
     kind: "badger",
     name: "Borsuk",
-    genitive: "Borsuka",
-    description: "w biało-czarne paseczki",
   },
   deer: {
     kind: "deer",
     name: "Jelonek",
-    genitive: "Jelonka",
-    description: "z małymi różkami",
   },
 };
 
@@ -250,29 +226,39 @@ export interface JourneyState {
   journeys: number;
   plan: SessionPlan;
   isResting: boolean;
+  restReason: "rounds" | "playtime" | "parent" | null;
   settings: JourneySettings;
 }
 
-export function createInitialJourney(random = Math.random): JourneyState {
+export function createInitialJourney(
+  plan: SessionPlan,
+  settings: JourneySettings = defaultSettings,
+  journeys = 0,
+): JourneyState {
   return {
     phase: "waiting",
     stop: 0,
     passengersCount: 0,
     tourIndex: 0,
     isTour: false,
-    journeys: 0,
-    plan: generateSessionPlan(random),
+    journeys,
+    plan,
     isResting: false,
-    settings: defaultSettings,
+    restReason: null,
+    settings: { ...settings },
   };
 }
 
 export type JourneyAction =
   | { type: "ENTER" }
-  | { type: "ADVANCE" }
-  | { type: "RESET_SESSION"; random?: () => number }
+  | { type: "ADVANCE"; nextPlan?: SessionPlan }
+  | { type: "RESET_SESSION"; plan: SessionPlan }
   | { type: "UPDATE_SETTINGS"; settings: Partial<JourneySettings> }
-  | { type: "SET_REST"; isResting: boolean };
+  | {
+      type: "SET_REST";
+      isResting: boolean;
+      reason?: JourneyState["restReason"];
+    };
 
 export function journeyReducer(
   state: JourneyState,
@@ -315,13 +301,13 @@ export function journeyReducer(
         case "returning":
           return { ...state, phase: "unboarding" };
         case "unboarding": {
+          // Generate entropy before dispatch; reducers must stay replayable.
+          if (!action.nextPlan) return state;
           const nextJourneys = state.journeys + 1;
           const shouldRest =
             state.settings.roundsBeforeRest > 0 &&
             nextJourneys % state.settings.roundsBeforeRest === 0;
 
-          // Generate a fresh session plan for subsequent journeys with new friends/stops
-          const nextPlan = generateSessionPlan();
           return {
             ...state,
             phase: "waiting",
@@ -330,8 +316,9 @@ export function journeyReducer(
             tourIndex: 0,
             isTour: false,
             journeys: nextJourneys,
-            plan: nextPlan,
+            plan: action.nextPlan,
             isResting: shouldRest,
+            restReason: shouldRest ? "rounds" : null,
           };
         }
         default:
@@ -339,7 +326,7 @@ export function journeyReducer(
       }
     }
     case "RESET_SESSION": {
-      return createInitialJourney(action.random);
+      return createInitialJourney(action.plan, state.settings, state.journeys);
     }
     case "UPDATE_SETTINGS": {
       return {
@@ -354,6 +341,7 @@ export function journeyReducer(
       return {
         ...state,
         isResting: action.isResting,
+        restReason: action.isResting ? (action.reason ?? "parent") : null,
       };
     }
     default:

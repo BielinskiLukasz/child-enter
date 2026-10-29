@@ -1,11 +1,21 @@
-import { useState } from "react";
-import type { JourneySettings } from "../game";
+import { useLayoutEffect, useRef, useState, type FormEvent } from "react";
+import type { JourneySettings, JourneyState } from "../game";
+import { useModalFocus } from "../hooks/useModalFocus";
+
+function makeParentQuestion() {
+  const first = 2 + Math.floor(Math.random() * 8);
+  const second = 1 + Math.floor(Math.random() * 8);
+  return { first, second, answer: first + second };
+}
 
 export function ParentModal({
   isOpen,
   onClose,
   onResetSession,
   onTriggerRest,
+  isResting,
+  restReason,
+  onContinueAfterRest,
   settings,
   onUpdateSettings,
 }: {
@@ -13,23 +23,21 @@ export function ParentModal({
   onClose: () => void;
   onResetSession: () => void;
   onTriggerRest: () => void;
+  isResting: boolean;
+  restReason: JourneyState["restReason"];
+  onContinueAfterRest: () => void;
   settings: JourneySettings;
   onUpdateSettings: (settings: Partial<JourneySettings>) => void;
 }) {
   const [gateUnlocked, setGateUnlocked] = useState(false);
   const [gateAnswer, setGateAnswer] = useState("");
   const [gateError, setGateError] = useState(false);
+  const [question, setQuestion] = useState(makeParentQuestion);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
-  // Simple math challenge for parent gate (3 + 4 = 7)
-  const numA = 3;
-  const numB = 4;
-  const expectedSum = numA + numB;
-
-  if (!isOpen) return null;
-
-  const handleVerifyGate = (e: React.FormEvent) => {
+  const handleVerifyGate = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (parseInt(gateAnswer, 10) === expectedSum) {
+    if (Number(gateAnswer) === question.answer) {
       setGateUnlocked(true);
       setGateError(false);
     } else {
@@ -41,15 +49,33 @@ export function ParentModal({
     setGateUnlocked(false);
     setGateAnswer("");
     setGateError(false);
+    setQuestion(makeParentQuestion());
     onClose();
   };
 
+  useModalFocus(
+    dialogRef,
+    isOpen,
+    gateUnlocked ? ".parent-done-btn" : ".parent-gate-input",
+    handleClose,
+  );
+
+  useLayoutEffect(() => {
+    if (!isOpen || !gateUnlocked) return;
+    dialogRef.current
+      ?.querySelector<HTMLElement>(".parent-done-btn")
+      ?.focus({ preventScroll: true });
+  }, [gateUnlocked, isOpen]);
+
+  if (!isOpen) return null;
+
   return (
-    <div
+    <dialog
+      ref={dialogRef}
       className="parent-modal-backdrop"
-      role="dialog"
       aria-modal="true"
       aria-labelledby="parent-modal-title"
+      onClick={(event) => event.stopPropagation()}
     >
       <div className="parent-modal-card">
         <div className="parent-modal-header flex items-center justify-between">
@@ -74,13 +100,12 @@ export function ParentModal({
             </p>
             <div className="parent-gate-challenge flex items-center justify-center gap-3">
               <span>
-                {numA} + {numB} =
+                {question.first} + {question.second} =
               </span>
               <input
                 type="number"
                 value={gateAnswer}
                 onChange={(e) => setGateAnswer(e.target.value)}
-                autoFocus
                 className="parent-gate-input"
                 placeholder="?"
                 aria-label="Wynik dodawania"
@@ -91,7 +116,7 @@ export function ParentModal({
             </div>
             {gateError && (
               <p className="parent-gate-error">
-                Spróbuj ponownie (wynik: {expectedSum})
+                Wynik się nie zgadza. Spróbuj ponownie.
               </p>
             )}
           </form>
@@ -108,7 +133,7 @@ export function ParentModal({
                   }}
                   className="parent-action-btn"
                 >
-                  🔄 Nowa podróż (nowe zwierzątka i stacje)
+                  Nowa podróż (nowe zwierzątka i stacje)
                 </button>
                 <button
                   type="button"
@@ -118,9 +143,51 @@ export function ParentModal({
                   }}
                   className="parent-action-btn"
                 >
-                  🌙 Pora na odpoczynek (ekran snu)
+                  Pora na odpoczynek (ekran snu)
                 </button>
+                {isResting && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onContinueAfterRest();
+                      handleClose();
+                    }}
+                    className="parent-action-btn"
+                  >
+                    {restReason === "playtime"
+                      ? `Wznów na kolejne ${settings.playtimeLimitMinutes} min`
+                      : "Wznów podróż"}
+                  </button>
+                )}
               </div>
+            </section>
+
+            <section className="parent-section">
+              <h3 className="parent-section-title">Limit czasu zabawy</h3>
+              <label className="parent-label" htmlFor="playtime-limit">
+                Aktywny czas tej karty:
+              </label>
+              <select
+                id="playtime-limit"
+                value={settings.playtimeLimitMinutes}
+                onChange={(e) =>
+                  onUpdateSettings({
+                    playtimeLimitMinutes: Number(e.target.value),
+                  })
+                }
+                className="parent-select"
+              >
+                <option value={1}>1 minuta</option>
+                <option value={5}>5 minut</option>
+                <option value={10}>10 minut</option>
+                <option value={20}>20 minut (domyślnie)</option>
+                <option value={30}>30 minut</option>
+                <option value={0}>Bez limitu</option>
+              </select>
+              <p className="parent-label mt-2">
+                Czas liczy się, gdy ta karta jest widoczna. Postój pociągu
+                również wlicza się do czasu zabawy.
+              </p>
             </section>
 
             <section className="parent-section">
@@ -188,11 +255,9 @@ export function ParentModal({
                 }
                 className="parent-select"
               >
-                <option value={2}>Po 2 pełnych podróżach (~8 min)</option>
-                <option value={4}>
-                  Po 4 pełnych podróżach (~16 min - domyślnie)
-                </option>
-                <option value={6}>Po 6 pełnych podróżach (~24 min)</option>
+                <option value={2}>Po 2 pełnych podróżach</option>
+                <option value={4}>Po 4 pełnych podróżach (domyślnie)</option>
+                <option value={6}>Po 6 pełnych podróżach</option>
                 <option value={0}>Bez automatycznego odpoczynku</option>
               </select>
             </section>
@@ -219,6 +284,6 @@ export function ParentModal({
           </div>
         )}
       </div>
-    </div>
+    </dialog>
   );
 }

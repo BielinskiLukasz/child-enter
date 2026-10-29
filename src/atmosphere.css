@@ -24,7 +24,6 @@
   background: linear-gradient(180deg, var(--sky-top), var(--sky-bottom));
 }
 
-.little-world .world-brand,
 .little-world .introduction h1,
 .little-world .journey-message {
   color: var(--ink);

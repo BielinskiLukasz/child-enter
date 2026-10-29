@@ -1,13 +1,10 @@
-import { useLayoutEffect, useRef, type Dispatch } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { PHASE_DURATION, type JourneyState } from "../game";
 
 export type PhaseClock = { read: () => number };
 
 /** One visibility-aware clock shared by the story and its atmosphere. */
-export function useJourneyClock(
-  journey: JourneyState,
-  dispatch: Dispatch<{ type: "ENTER" | "ADVANCE" }>,
-) {
+export function useJourneyClock(journey: JourneyState, onAdvance: () => void) {
   const clock = useRef<PhaseClock>({ read: () => 0 });
   useLayoutEffect(() => {
     clock.current = { read: () => 0 };
@@ -32,7 +29,7 @@ export function useJourneyClock(
         elapsed = duration;
         clearTimeout(timer);
         timer = undefined;
-        dispatch({ type: "ADVANCE" });
+        onAdvance();
       }, duration - elapsed);
     };
     const pause = () => {
@@ -51,6 +48,6 @@ export function useJourneyClock(
       clearTimeout(timer);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [journey.phase, journey.tourIndex, dispatch]);
+  }, [journey.phase, journey.tourIndex, onAdvance]);
   return clock;
 }

@@ -10,6 +10,7 @@ import {
 } from "../src/atmosphere";
 import {
   createInitialJourney,
+  generateSessionPlan,
   PHASE_DURATION,
   journeyReducer,
   type JourneyState,
@@ -32,6 +33,15 @@ const atmosphereCSS = [
   "--fog-opacity",
   "--night-veil",
 ];
+
+function advanceState(state: JourneyState): JourneyState {
+  return journeyReducer(
+    state,
+    state.phase === "unboarding"
+      ? { type: "ADVANCE", nextPlan: generateSessionPlan(() => 0.2) }
+      : { type: "ADVANCE" },
+  );
+}
 
 async function snapshot(page: Page) {
   return page.locator("main").evaluate((element, properties) => {
@@ -98,14 +108,16 @@ test("startup can choose every weather and every time of day", () => {
 });
 
 test("road progress agrees at every station and never jumps at a phase boundary", () => {
-  let state: JourneyState = createInitialJourney(() => 0.5);
+  let state: JourneyState = createInitialJourney(
+    generateSessionPlan(() => 0.5),
+  );
   expect(ROUND_DURATION).toBe(47800);
   for (let round = 0; round < 3; round++) {
     for (let press = 0; press < 4; press++) {
       state = journeyReducer(state, { type: "ENTER" });
       for (let step = 0; step < (press === 3 ? 6 : 4); step++) {
         const boundary = journeyRoadProgress(state, 1);
-        state = journeyReducer(state, { type: "ADVANCE" });
+        state = advanceState(state);
         if (state.phase !== "waiting") {
           expect(journeyRoadProgress(state, 0)).toBeCloseTo(boundary, 10);
         } else {

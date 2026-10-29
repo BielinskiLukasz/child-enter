@@ -2,6 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { resolve } from "node:path";
 import {
   createInitialJourney,
+  generateSessionPlan,
   journeyReducer,
   PHASE_DURATION,
   type JourneyState,
@@ -24,13 +25,35 @@ async function collectFriend(page: Page, count: number) {
   await expect(page.locator("main")).toHaveAttribute("data-phase", "waiting");
 }
 
+async function unlockParentGate(page: Page) {
+  const question = (await page
+    .locator(".parent-gate-challenge span")
+    .textContent())!;
+  const [first, second] = question.match(/\d+/g)!.map(Number);
+  await page.locator(".parent-gate-input").fill(String(first + second));
+  await page.locator(".parent-gate-submit").click();
+  await expect(page.locator(".parent-settings-content")).toBeVisible();
+}
+
+function advanceState(state: JourneyState, random = Math.random): JourneyState {
+  return journeyReducer(
+    state,
+    state.phase === "unboarding"
+      ? { type: "ADVANCE", nextPlan: generateSessionPlan(random) }
+      : { type: "ADVANCE" },
+  );
+}
+
 test("the state machine waits, collects three friends, tours and resets with fresh plan", () => {
-  let state: JourneyState = createInitialJourney(() => 0.42);
+  const initialPlan = generateSessionPlan(() => 0.42);
+  let state: JourneyState = createInitialJourney(initialPlan);
   const initialDriver = state.plan.driver;
   const initialPassengers = state.plan.passengers;
   expect(state.plan.driver).toBeDefined();
   expect(state.plan.passengers.length).toBe(3);
   expect(state.plan.stops.length).toBe(4);
+  expect(initialPassengers).not.toContain(initialDriver);
+  expect(new Set(initialPassengers).size).toBe(initialPassengers.length);
 
   for (let passenger = 1; passenger <= 3; passenger++) {
     state = journeyReducer(state, { type: "ENTER" });
@@ -54,14 +77,54 @@ test("the state machine waits, collects three friends, tours and resets with fre
   expect(state.phase).toBe("returning");
   state = journeyReducer(state, { type: "ADVANCE" });
   expect(state.phase).toBe("unboarding");
-  state = journeyReducer(state, { type: "ADVANCE" });
+  const nextPlan = generateSessionPlan(() => 0.2);
+  state = journeyReducer(state, { type: "ADVANCE", nextPlan });
 
   // Finished 1 full journey
   expect(state.journeys).toBe(1);
   expect(state.passengersCount).toBe(0);
   expect(state.phase).toBe("waiting");
-  expect(state.plan.driver).toBeDefined();
+  expect(state.plan).toEqual(nextPlan);
+  expect(state.plan).not.toEqual(initialPlan);
   expect(state.plan.passengers.length).toBe(3);
+});
+
+test("reducer transitions are deterministic and reset preserves settings and journey count", () => {
+  const plan = generateSessionPlan(() => 0.42);
+  const nextPlan = generateSessionPlan(() => 0.2);
+  let state = createInitialJourney(plan);
+  state = journeyReducer(state, {
+    type: "UPDATE_SETTINGS",
+    settings: {
+      timeOverride: "night",
+      weatherOverride: "snow",
+      roundsBeforeRest: 2,
+      playtimeLimitMinutes: 5,
+    },
+  });
+  state = { ...state, journeys: 3, isResting: true, restReason: "parent" };
+
+  const reset = journeyReducer(state, {
+    type: "RESET_SESSION",
+    plan: nextPlan,
+  });
+  expect(reset.settings).toEqual(state.settings);
+  expect(reset.journeys).toBe(3);
+  expect(reset.plan).toEqual(nextPlan);
+  expect(reset.isResting).toBe(false);
+  expect(reset.restReason).toBeNull();
+
+  const ready = createInitialJourney(plan);
+  const firstResult = advanceState(
+    { ...ready, phase: "unboarding", isTour: true },
+    () => 0.2,
+  );
+  const replayedResult = advanceState(
+    { ...ready, phase: "unboarding", isTour: true },
+    () => 0.2,
+  );
+  expect(firstResult).toEqual(replayedResult);
+  expect(firstResult.plan).toEqual(generateSessionPlan(() => 0.2));
 });
 
 test("Enter is the main input, held keys are ignored, and a full journey can be replayed", async ({
@@ -207,6 +270,22 @@ test.describe("on a touch phone without a keyboard", () => {
 });
 
 test.describe("parent controls and escape hatch", () => {
+  test("the brand mark opens the parent gate only after a full three-second hold", async ({
+    page,
+  }) => {
+    await page.clock.install();
+    await page.goto("/");
+    const mark = page.locator(".world-brand-icon");
+    await mark.hover();
+    await page.mouse.down();
+    await page.clock.runFor(2999);
+    await expect(page.locator(".parent-modal-backdrop")).toHaveCount(0);
+    await page.clock.runFor(20);
+    await expect(page.locator(".parent-modal-backdrop")).toBeVisible();
+    await page.mouse.up();
+    await expect(page.locator(".parent-gate-input")).toBeFocused();
+  });
+
   test("Escape key toggles parent modal with secure gate", async ({ page }) => {
     await page.goto("/");
     await page.keyboard.press("Escape");
@@ -215,15 +294,104 @@ test.describe("parent controls and escape hatch", () => {
       "Strefa Rodzica",
     );
 
-    // Solving math challenge unlocks settings
-    await page.locator(".parent-gate-input").fill("7");
+    const question = (await page
+      .locator(".parent-gate-challenge span")
+      .textContent())!;
+    const [first, second] = question.match(/\d+/g)!.map(Number);
+    const answer = first + second;
+    await page.locator(".parent-gate-input").fill(String(answer + 1));
+    await page.locator(".parent-gate-submit").click();
+    await expect(page.locator(".parent-gate-error")).toBeVisible();
+    await expect(page.locator(".parent-gate-error")).not.toContainText(
+      String(answer),
+    );
+    await page.locator(".parent-gate-input").fill(String(answer));
     await page.locator(".parent-gate-submit").click();
     await expect(page.locator(".parent-settings-content")).toBeVisible();
     await expect(page.locator("text=Pogoda i pora dnia")).toBeVisible();
 
+    await page.locator(".parent-done-btn").focus();
+    await page.keyboard.press("Tab");
+    await expect(page.locator(".parent-modal-close")).toBeFocused();
+
     // Close modal
     await page.locator(".parent-done-btn").click();
     await expect(page.locator(".parent-modal-card")).toBeHidden();
+    await expect(page.locator(".enter-key")).toBeFocused();
+
+    await page.keyboard.press("Escape");
+    await expect(page.locator(".parent-modal-card")).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.locator(".parent-modal-card")).toBeHidden();
+  });
+
+  test("settings survive a parent reset and rest dismissal remains parent-gated", async ({
+    page,
+  }) => {
+    await page.clock.install();
+    await page.goto("/");
+    await page.keyboard.press("Escape");
+    await unlockParentGate(page);
+    await page.locator("#time-override").selectOption("night");
+    await page.locator("#weather-override").selectOption("snow");
+    await page.locator("#rounds-rest").selectOption("2");
+    await page.locator("#playtime-limit").selectOption("5");
+    await page
+      .locator(".parent-action-btn")
+      .filter({ hasText: "Nowa podróż" })
+      .click();
+    await expect(page.locator("main")).toHaveAttribute("data-passengers", "0");
+
+    await page.keyboard.press("Escape");
+    await unlockParentGate(page);
+    await expect(page.locator("#time-override")).toHaveValue("night");
+    await expect(page.locator("#weather-override")).toHaveValue("snow");
+    await expect(page.locator("#rounds-rest")).toHaveValue("2");
+    await expect(page.locator("#playtime-limit")).toHaveValue("5");
+    await page.locator(".parent-done-btn").click();
+
+    await page.keyboard.press("Escape");
+    await unlockParentGate(page);
+    await page
+      .locator(".parent-action-btn")
+      .filter({ hasText: "Pora na odpoczynek" })
+      .click();
+    await expect(page.locator(".rest-screen-overlay")).toBeVisible();
+    await expect(page.locator(".rest-parent-access")).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.locator(".rest-screen-overlay")).toBeVisible();
+    await page.locator(".rest-parent-access").click();
+    await unlockParentGate(page);
+    await page
+      .locator(".parent-action-btn")
+      .filter({ hasText: "Wznów podróż" })
+      .click();
+    await expect(page.locator(".rest-screen-overlay")).toHaveCount(0);
+    await expect(page.locator("main")).toHaveAttribute("data-phase", "waiting");
+  });
+
+  test("active playtime limit opens a rest screen; parent can approve one continuation", async ({
+    page,
+  }) => {
+    await page.clock.install();
+    await page.goto("/");
+    await page.keyboard.press("Escape");
+    await unlockParentGate(page);
+    await page.locator("#playtime-limit").selectOption("1");
+    await page.locator(".parent-done-btn").click();
+    await page.clock.runFor(60_500);
+    await expect(page.locator(".rest-screen-overlay")).toBeVisible();
+    await page.locator(".rest-parent-access").click();
+    await unlockParentGate(page);
+    await page
+      .locator(".parent-action-btn")
+      .filter({ hasText: "Wznów na kolejne 1 min" })
+      .click();
+    await expect(page.locator(".rest-screen-overlay")).toHaveCount(0);
+    await page.clock.runFor(59_000);
+    await expect(page.locator(".rest-screen-overlay")).toHaveCount(0);
+    await page.clock.runFor(2_000);
+    await expect(page.locator(".rest-screen-overlay")).toBeVisible();
   });
 });
 
@@ -285,6 +453,25 @@ test("the story pauses when hidden and resumes with its remaining time", async (
     "data-phase",
     "travelling",
   );
+});
+
+test("the SVG mounts only the active scene and at most one crossfade scene", async ({
+  page,
+}) => {
+  await page.clock.install();
+  await page.goto("/");
+  const scenes = page.locator(".scenery");
+  await expect(scenes).toHaveCount(1);
+  await page.keyboard.press("Enter");
+  await page.clock.runFor(PHASE_DURATION.departing + 10);
+  await expect(page.locator("main")).toHaveAttribute(
+    "data-phase",
+    "travelling",
+  );
+  await expect(scenes).toHaveCount(2);
+  await page.clock.runFor(1900);
+  await expect(scenes).toHaveCount(1);
+  await expect(scenes.first()).toHaveClass(/scenery--active/);
 });
 
 test("the single HTML file works offline without any remote requests", async ({

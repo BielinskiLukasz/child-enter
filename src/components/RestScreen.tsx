@@ -1,10 +1,17 @@
-export function RestScreen({ onContinue }: { onContinue: () => void }) {
+import { useRef } from "react";
+import { useModalFocus } from "../hooks/useModalFocus";
+
+export function RestScreen({ onOpenParent }: { onOpenParent: () => void }) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  // Rest is intentionally not dismissible until a parent passes the gate.
+  useModalFocus(dialogRef, true, ".rest-parent-access", () => {});
+
   return (
-    <div
+    <dialog
+      ref={dialogRef}
       className="rest-screen-overlay flex flex-col items-center justify-center text-center"
-      role="dialog"
       aria-modal="true"
-      aria-label="Pora na odpoczynek. Pociąg śpi pod rozgwieżdżonym niebem."
+      aria-labelledby="rest-screen-title"
     >
       <div className="rest-screen-content space-y-6 max-w-lg p-8">
         <div className="rest-moon-illustration mx-auto">
@@ -34,7 +41,10 @@ export function RestScreen({ onContinue }: { onContinue: () => void }) {
         </div>
 
         <div className="space-y-2">
-          <h2 className="rest-title font-serif text-3xl font-medium tracking-tight">
+          <h2
+            id="rest-screen-title"
+            className="rest-title font-serif text-3xl font-medium tracking-tight"
+          >
             Pora na odpoczynek
           </h2>
           <p className="rest-desc text-base">
@@ -45,13 +55,13 @@ export function RestScreen({ onContinue }: { onContinue: () => void }) {
         <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
           <button
             type="button"
-            onClick={onContinue}
-            className="rest-continue-btn"
+            onClick={onOpenParent}
+            className="rest-parent-access"
           >
-            Obudź pociąg i ruszaj dalej
+            Ustawienia dla rodzica
           </button>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }

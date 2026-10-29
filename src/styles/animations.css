@@ -1,0 +1,297 @@
+/* Animations */
+.cloud {
+  animation: cloud-drift 56s ease-in-out infinite alternate;
+}
+
+.steam-puff {
+  transform-origin: 510px 300px;
+  animation: steam-rise 9s ease-out infinite;
+}
+
+.steam-puff--one {
+  animation-delay: -1s;
+}
+
+.steam-puff--two {
+  animation-delay: -4s;
+}
+
+.steam-puff--three {
+  animation-delay: -7s;
+}
+
+.wheel-spin {
+  animation: wheel-turn 5s linear infinite;
+  animation-play-state: paused;
+}
+
+.parallax-trees {
+  animation: scenery-pass 48s linear infinite;
+  animation-play-state: paused;
+}
+
+.rail-sleepers {
+  animation: track-pass 1.2s linear infinite;
+  animation-play-state: paused;
+}
+
+.foreground-meadow {
+  animation: foreground-pass 24s linear infinite;
+  animation-play-state: paused;
+}
+
+.is-moving .wheel-spin,
+.is-moving .parallax-trees,
+.is-moving .rail-sleepers,
+.is-moving .foreground-meadow {
+  animation-play-state: running;
+}
+
+.is-moving .train {
+  animation: train-roll 2.6s ease-in-out infinite;
+}
+
+.is-moving .piston {
+  animation: piston-turn 2.5s ease-in-out infinite;
+}
+
+.station--departing {
+  animation: station-leave 2s cubic-bezier(0.55, 0.05, 0.8, 0.7) both;
+}
+
+.station--arriving {
+  animation: station-arrive 1.8s cubic-bezier(0.2, 0.6, 0.35, 1) both;
+}
+
+.passenger--boarding {
+  animation: passenger-board 1.7s cubic-bezier(0.2, 0.6, 0.3, 1) both;
+}
+
+.passenger--leaving {
+  animation: passenger-leave 1.4s var(--passenger-delay, 0s) ease-in-out
+    forwards;
+}
+
+.waving-paw {
+  transform-origin: 22px 46px;
+  animation: friendly-wave 6.5s ease-in-out infinite;
+}
+
+.passenger--boarding .waving-paw {
+  animation-delay: 1.1s;
+}
+
+.platform-friend {
+  transition: opacity 0.8s;
+}
+
+.platform-friend--boarding {
+  opacity: 0;
+}
+
+.is-paused *,
+.is-paused *::before,
+.is-paused *::after {
+  animation-play-state: paused !important;
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes intro-appear {
+  from {
+    opacity: 0;
+    transform: translateY(9px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes landscape-appear {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes message-appear {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cloud-drift {
+  from {
+    transform: translateX(-13px);
+  }
+  to {
+    transform: translateX(22px);
+  }
+}
+
+@keyframes steam-rise {
+  0% {
+    opacity: 0.1;
+    transform: translate(0, 10px) scale(0.96);
+  }
+  30% {
+    opacity: 0.72;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-27px, -41px) scale(1.1);
+  }
+}
+
+@keyframes wheel-turn {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes scenery-pass {
+  to {
+    transform: translateX(1600px);
+  }
+}
+
+@keyframes scenery-arrive {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scenery-leave {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes track-pass {
+  to {
+    transform: translateX(40px);
+  }
+}
+
+@keyframes foreground-pass {
+  to {
+    transform: translateX(1600px);
+  }
+}
+
+@keyframes train-roll {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1.4px);
+  }
+}
+
+@keyframes piston-turn {
+  0%,
+  100% {
+    transform: translateY(1px);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes station-leave {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(260px);
+  }
+}
+
+@keyframes station-arrive {
+  from {
+    opacity: 0;
+    transform: translateX(-220px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes passenger-board {
+  from {
+    opacity: 0;
+    transform: translateY(85px);
+  }
+  25% {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes passenger-leave {
+  to {
+    opacity: 0;
+    transform: translateY(85px);
+  }
+}
+
+@keyframes friendly-wave {
+  0%,
+  29%,
+  100% {
+    transform: rotate(0);
+  }
+  5%,
+  15%,
+  25% {
+    transform: rotate(-20deg);
+  }
+  10%,
+  20% {
+    transform: rotate(10deg);
+  }
+}
+
+@keyframes key-presence {
+  0%,
+  65%,
+  100% {
+    transform: translateY(0);
+  }
+  77% {
+    transform: translateY(-2px);
+  }
+  88% {
+    transform: translateY(0);
+  }
+}

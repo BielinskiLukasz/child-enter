@@ -1,18 +1,22 @@
 {
-  "name": "react-vite-tailwind",
+  "name": "maly-pociag-artura",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "playwright test",
+    "typecheck": "tsc --noEmit",
+    "icons": "python3 tools/generate-icons.py",
+    "predev": "npm run icons",
+    "prebuild": "npm run icons",
+    "pretest": "npm run icons"
   },
   "dependencies": {
-    "clsx": "2.1.1",
     "react": "19.2.6",
-    "react-dom": "19.2.6",
-    "tailwind-merge": "3.4.0"
+    "react-dom": "19.2.6"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",
