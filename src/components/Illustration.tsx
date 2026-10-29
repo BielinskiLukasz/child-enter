@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { CelestialSky, WeatherEffects } from "./Atmosphere";
 import {
   ANIMALS,
   STOPS,
@@ -19,12 +20,12 @@ function Cloud({
   delay?: string;
 }) {
   return (
-    <g transform={`translate(${x} ${y}) scale(${scale})`}>
+    <g transform={`translate(${x} ${y}) scale(${scale})`} className="sky-cloud">
       <path
         className="cloud"
         style={{ animationDelay: delay }}
         d="M0 35C-9 21 3 5 20 9 25-13 58-15 69 6c16-9 36 2 35 18 22-2 29 23 8 26H9C-6 50-9 40 0 35Z"
-        fill="#fffcf3"
+        fill="var(--cloud, #fffcf3)"
       />
     </g>
   );
@@ -139,7 +140,7 @@ function Cottage({
             width="20"
             height="24"
             rx="2"
-            fill="#f7e8bb"
+            fill="var(--window, #f7e8bb)"
           />
           <path d={`M${wx}-55v24m-10-12h20`} stroke="#b5ac8c" strokeWidth="2" />
         </g>
@@ -768,7 +769,7 @@ function Station({ journey }: { journey: JourneyState }) {
             width="23"
             height="32"
             rx="1"
-            fill="#e5dfb4"
+            fill="var(--window, #e5dfb4)"
           />
           <path d={`M${x} 383v32m-11-16h23`} stroke="#97a08a" strokeWidth="2" />
           <path
@@ -929,7 +930,7 @@ export function Illustration({
       viewBox="0 0 1600 640"
       preserveAspectRatio="xMidYMid slice"
       role="img"
-      aria-labelledby="scene-title scene-description"
+      aria-labelledby="scene-title scene-description sky-description"
     >
       <title id="scene-title">{`Ma\u0142y poci\u0105g Artura: ${STOPS[journey.stop].name}`}</title>
       <desc id="scene-description">
@@ -937,25 +938,20 @@ export function Illustration({
         Na kolejnych stacjach do poci&#261;gu wsiadaj&#261; kr&oacute;liczek,
         lisek i mi&#347;.
       </desc>
+      <desc id="sky-description">
+        Pogoda i pora dnia otulają spokojną podróż.
+      </desc>
       <defs>
         <linearGradient id="ground-fade" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#d1d5b4" />
           <stop offset=".55" stopColor="#e5e5cd" />
-          <stop offset="1" stopColor="#f6f3e8" />
+          <stop offset="1" stopColor="var(--ground, #f6f3e8)" />
         </linearGradient>
         <clipPath id="scenery-clip">
           <path d="M-2000-800H3600V510H-2000Z" />
         </clipPath>
       </defs>
-      <g className="sun" transform="translate(1320 104)">
-        <circle r="47" fill="#eacb8c" opacity=".65" />
-        <circle r="36" fill="#efd59e" />
-        <g stroke="#dbc38e" strokeWidth="2" strokeLinecap="round" opacity=".6">
-          {Array.from({ length: 12 }, (_, i) => (
-            <path key={i} d="M0-59v-7" transform={`rotate(${i * 30})`} />
-          ))}
-        </g>
-      </g>
+      <CelestialSky />
       <Cloud x={95} y={101} scale={0.95} delay="-8s" />
       <Cloud x={1019} y={79} scale={0.88} delay="-23s" />
       <Cloud x={1456} y={197} scale={0.72} delay="-14s" />
@@ -1019,9 +1015,10 @@ export function Illustration({
         <Locomotive />
       </g>
       <MeadowDetails />
+      <WeatherEffects />
       <path
         d="M-100 601q399-21 856 2t944-8v45H-100Z"
-        fill="#f6f3e8"
+        fill="var(--ground, #f6f3e8)"
         opacity=".6"
       />
     </svg>

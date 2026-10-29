@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./fonts.css";
+@import "./atmosphere.css";
 
 :root {
   font-family: "DM Sans", sans-serif;
@@ -30,7 +31,11 @@ body {
 .little-world {
   height: 100svh;
   min-height: 800px;
-  background: radial-gradient(ellipse at 52% 18%, #fcf9ef 0%, #f6f3e8 64%);
+  background: linear-gradient(
+    180deg,
+    var(--sky-top, #faf7ed),
+    var(--sky-bottom, #eaf0e1)
+  );
   user-select: none;
   -webkit-user-select: none;
 }

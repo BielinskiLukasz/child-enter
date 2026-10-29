@@ -1,5 +1,4 @@
 import {
-  useEffect,
   useLayoutEffect,
   useReducer,
   useRef,
@@ -8,12 +7,13 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import { Illustration } from "./components/Illustration";
+import { useJourneyClock } from "./hooks/useJourneyClock";
+import { useAtmosphere } from "./hooks/useAtmosphere";
 import {
   currentLandscape,
   initialJourney,
   journeyMessage,
   journeyReducer,
-  PHASE_DURATION,
 } from "./game";
 
 function SunMark() {
@@ -95,33 +95,10 @@ export default function App() {
     };
   }, []);
 
-  useEffect(() => {
-    if (journey.phase === "waiting") return;
-    let remaining = PHASE_DURATION[journey.phase];
-    let startedAt = 0;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    // Pause the story, not just its animation, while the browser tab is hidden.
-    const resume = () => {
-      startedAt = performance.now();
-      timer = setTimeout(() => dispatch({ type: "ADVANCE" }), remaining);
-    };
-    const pause = () => {
-      if (timer === undefined) return;
-      clearTimeout(timer);
-      timer = undefined;
-      remaining = Math.max(0, remaining - (performance.now() - startedAt));
-    };
-    const onVisibility = () => {
-      if (document.hidden) pause();
-      else if (timer === undefined) resume();
-    };
-    if (!document.hidden) resume();
-    document.addEventListener("visibilitychange", onVisibility);
-    return () => {
-      clearTimeout(timer);
-      document.removeEventListener("visibilitychange", onVisibility);
-    };
-  }, [journey.phase, journey.tourIndex]);
+  // The weather and the story share one clock, including the hidden-tab pause.
+  const world = useRef<HTMLElement | null>(null);
+  const clock = useJourneyClock(journey, dispatch);
+  const initialConditions = useAtmosphere(journey, clock, world);
 
   const moving = [
     "departing",
@@ -145,13 +122,16 @@ export default function App() {
 
   return (
     <main
+      ref={world}
       className={`little-world relative isolate overflow-hidden ${moving ? "is-moving" : ""} ${!visible ? "is-paused" : ""}`}
       data-phase={journey.phase}
       data-passengers={journey.passengers}
       data-landscape={landscape}
       data-journeys={journey.journeys}
+      data-initial-weather={initialConditions.weather}
+      data-initial-hour={initialConditions.hour.toFixed(4)}
       aria-label={
-        "Ma\u0142y poci\u0105g Artura. Spokojna zabawa sterowana klawiszem Enter."
+        "Ma\u0142y poci\u0105g Artura. Spokojna zabawa sterowana klawiszem Enter lub przyciskiem na ekranie."
       }
     >
       <header className="site-header flex items-center justify-between">
