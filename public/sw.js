@@ -1,4 +1,4 @@
-// Spokojny Świat Artura - Service Worker (Network-first with offline cache)
+// Mały pociąg Artura - Service Worker (Network-first with offline cache)
 const CACHE_NAME = "artur-train-v1";
 
 self.addEventListener("install", (event) => {

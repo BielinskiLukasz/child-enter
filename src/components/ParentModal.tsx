@@ -198,9 +198,7 @@ export function ParentModal({
             </section>
 
             <section className="parent-trust-box">
-              <h4 className="parent-trust-heading">
-                O Spokojnym Świecie Artura
-              </h4>
+              <h4 className="parent-trust-heading">O Małym pociągu Artura</h4>
               <p className="parent-trust-desc">
                 Aplikacja została zaprojektowana dla małych dzieci z myślą o
                 wyciszeniu i łagodnej stymulacji. Działa całkowicie lokalnie w

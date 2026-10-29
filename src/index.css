@@ -1215,6 +1215,11 @@ body {
   .landscape {
     bottom: 290px;
   }
+  /* The big touch key plus the wrapping parent strip leave no room for the
+     decorative footer; hiding it keeps the patient note clear of it. */
+  .page-footer {
+    display: none;
+  }
 }
 
 /* A phone held sideways is short: shrink words, keep picture and key */

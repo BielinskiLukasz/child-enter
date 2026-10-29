@@ -1,4 +1,4 @@
-# Ma&#322;y Poci&#261;g Artura
+# Mały pociąg Artura
 
 ## Purpose
 

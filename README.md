@@ -1,12 +1,14 @@
-# Spokojny &#346;wiat Artura
+# Mały pociąg Artura
 
 A calm, silent Polish-language train activity for three-year-old Artur. **Intended for supervised use by a young child.** This standalone activity uses only the Enter key or the large on-screen button, with no other interaction.
 
-## Activities
+**Try it live: [Mały pociąg Artura](https://bielinskilukasz.github.io/child-enter/)**
 
-Full activity documentation is in [docs/activities/](docs/activities/README.md).
+## The Activity
 
-1. [**Ma&#322;y Poci&#261;g Artura**](docs/activities/maly-pociag-artura.md) - Take a slow train ride with a randomized animal conductor and passenger friends, travelling together through varied landscapes, dynamic weather, and day/night cycles.
+Full documentation is in [docs/activities/maly-pociag-artura.md](docs/activities/maly-pociag-artura.md).
+
+Take a slow train ride with a randomized animal conductor and passenger friends, travelling together through varied landscapes, dynamic weather, and day/night cycles.
 
 The activity is silent and calm, with no scores or failure. The train waits at every station until the Enter key is pressed or the big on-screen Enter button is touched, so it works on a computer and on a phone or tablet without a keyboard. Holding the key or drumming on the button does not queue journeys. The story pauses when the browser tab is hidden, and reduced-motion preferences are respected.
 

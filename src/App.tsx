@@ -46,12 +46,13 @@ function SunMark({ onLongPressTrigger }: { onLongPressTrigger?: () => void }) {
       onPointerDown={startPress}
       onPointerUp={cancelPress}
       onPointerLeave={cancelPress}
-      title="Przytrzymaj 3 sekundy, aby otworzyć panel rodzica"
+      title="Mały pociąg Artura. Przytrzymaj 3 sekundy, aby otworzyć panel rodzica."
     >
       <svg
         viewBox="0 0 44 44"
         fill="none"
-        aria-hidden="true"
+        role="img"
+        aria-label="Mały pociąg Artura"
         className="w-11 h-11"
       >
         <path
@@ -206,16 +207,9 @@ export default function App() {
       <ParentValueStrip onOpenParentMenu={() => setParentModalOpen(true)} />
 
       <header className="site-header flex items-center justify-between">
+        {/* The hero heading carries the name, so the mark stays wordless here. */}
         <div className="world-brand flex items-center gap-3">
           <SunMark onLongPressTrigger={() => setParentModalOpen(true)} />
-          <div className="flex flex-col">
-            <span className="brand-sub font-sans text-xs tracking-wide">
-              Spokojny świat
-            </span>
-            <span className="brand-name font-serif text-xl tracking-tight leading-tight">
-              Artura
-            </span>
-          </div>
         </div>
         <div className="flex items-center gap-4">
           <div className="quiet-note flex items-center gap-2">

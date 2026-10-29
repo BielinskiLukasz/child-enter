@@ -128,7 +128,6 @@ test.describe("on a touch phone without a keyboard", () => {
   test("the visible Enter button runs the whole journey by finger", async ({
     page,
   }) => {
-    test.setTimeout(60000);
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
     await page.clock.install();

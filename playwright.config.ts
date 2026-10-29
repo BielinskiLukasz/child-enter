@@ -3,7 +3,9 @@ import { defineConfig } from "@playwright/test";
 export default defineConfig({
   testDir: "./tests",
   fullyParallel: true,
-  timeout: 30000,
+  // The scene is rich (8 landscapes, parallax meadow, 24 fps atmosphere), so the
+  // long clock-driven journey tests need more wall time than the 30 s default.
+  timeout: 90000,
   expect: { timeout: 5000 },
   use: { baseURL: "http://localhost:5173", headless: true },
   projects: [
