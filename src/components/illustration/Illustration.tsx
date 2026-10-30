@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import {
   ALL_ANIMALS,
   ALL_LOCATIONS,
@@ -12,7 +12,14 @@ import { Carriage, Locomotive } from "./Train";
 import { Station } from "./Station";
 import { MeadowDetails } from "./Meadow";
 
-export function Illustration({
+/**
+ * Memoised because the playtime counter ticks once a second while the train is
+ * parked. Without this, every tick would rebuild the whole SVG scene even
+ * though nothing in it changed. Both props are stable between ticks, and the
+ * atmosphere is painted through CSS variables rather than React, so the sky
+ * keeps moving while the scene is skipped.
+ */
+export const Illustration = memo(function Illustration({
   journey,
   landscape,
 }: {
@@ -141,4 +148,4 @@ export function Illustration({
       />
     </svg>
   );
-}
+});

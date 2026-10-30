@@ -254,6 +254,7 @@ export default function App() {
       data-journeys={journey.journeys}
       data-initial-weather={initialConditions.weather}
       data-initial-hour={initialConditions.hour.toFixed(4)}
+      data-initial-moon-phase={(initialConditions.moonPhase ?? 0).toFixed(4)}
       data-driver={driverIsOutside(journey) ? "outside" : "cab"}
       aria-label="Mały pociąg Artura. Spokojna zabawa sterowana klawiszem Enter lub przyciskiem na ekranie."
     >

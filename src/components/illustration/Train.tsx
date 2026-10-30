@@ -2,6 +2,14 @@ import type { CSSProperties } from "react";
 import type { AnimalKind, JourneyState } from "../../game";
 import { Animal } from "./Animal";
 
+/**
+ * How each carriage reacts to the sky. The first friend grows drowsy after
+ * dark, the second presses closer to the glass in snow and fog, and the third
+ * simply enjoys the ride. Driven purely by CSS from `data-time-of-day` and
+ * `data-weather`, so it follows the atmosphere without any extra state.
+ */
+const PASSENGER_MOODS = ["dozer", "watcher", "rider"] as const;
+
 function Wheel({
   x,
   y,
@@ -81,7 +89,13 @@ export function Carriage({
                 } as CSSProperties
               }
             >
-              <Animal kind={passengerKind} />
+              {/* Nested so the mood transform never fights the boarding one.
+                  Each carriage has its own way of noticing the weather. */}
+              <g
+                className={`passenger-mood passenger-mood--${PASSENGER_MOODS[index]}`}
+              >
+                <Animal kind={passengerKind} />
+              </g>
             </g>
           </g>
         )}

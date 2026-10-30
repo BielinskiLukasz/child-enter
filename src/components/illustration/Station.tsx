@@ -1,8 +1,4 @@
-import {
-  ALL_LOCATIONS,
-  driverIsOutside,
-  type JourneyState,
-} from "../../game";
+import { ALL_LOCATIONS, driverIsOutside, type JourneyState } from "../../game";
 import { Animal } from "./Animal";
 
 export function Station({ journey }: { journey: JourneyState }) {
@@ -128,13 +124,25 @@ export function Station({ journey }: { journey: JourneyState }) {
         stroke="#d6c8a6"
         strokeWidth=".7"
       />
-      <path
-        d="M267 300v10l6 4"
-        stroke="#6d795f"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        fill="none"
-      />
+      {/* Hands follow the simulated hour (--day-hour), so the station clock
+          always agrees with the sky. Nested groups keep the CSS rotation from
+          replacing the SVG placement. */}
+      <g className="clock-hand clock-hand--hour">
+        <path
+          d="M267 310v-8"
+          stroke="#6d795f"
+          strokeWidth="2.4"
+          strokeLinecap="round"
+        />
+      </g>
+      <g className="clock-hand clock-hand--minute">
+        <path
+          d="M267 310v-10.5"
+          stroke="#6d795f"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+      </g>
       <circle cx="267" cy="310" r="1.7" fill="#6d795f" />
       <path d="M143 464V345" stroke="#61705a" strokeWidth="5" />
       <path
@@ -175,7 +183,8 @@ export function Station({ journey }: { journey: JourneyState }) {
                 : "platform-friend"
             }
           >
-            <Animal kind={waitingPassenger} />
+            {/* Waiting friends look eager; the wide eyes read as excitement. */}
+            <Animal kind={waitingPassenger} mood="curious" />
           </g>
         </g>
       )}

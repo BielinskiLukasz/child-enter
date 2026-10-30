@@ -332,3 +332,41 @@
     transform: translateY(0);
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Passengers reacting to the sky
+   --------------------------------------------------------------------------- */
+main[data-time-of-day="night"] .passenger-mood--dozer,
+main[data-time-of-day="dusk"] .passenger-mood--dozer {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: passenger-doze 9s ease-in-out infinite;
+}
+
+main[data-weather="snow"] .passenger-mood--watcher,
+main[data-weather="fog"] .passenger-mood--watcher,
+main[data-weather="rain"] .passenger-mood--watcher {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: passenger-watch 12s ease-in-out infinite;
+}
+
+@keyframes passenger-doze {
+  0%,
+  100% {
+    transform: rotate(0deg) translateY(0);
+  }
+  50% {
+    transform: rotate(-7deg) translateY(5px);
+  }
+}
+
+@keyframes passenger-watch {
+  0%,
+  100% {
+    transform: translateX(0) scale(1);
+  }
+  45% {
+    transform: translateX(15px) scale(1.03);
+  }
+}

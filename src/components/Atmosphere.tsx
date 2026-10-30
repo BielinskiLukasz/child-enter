@@ -36,8 +36,15 @@ export const CelestialSky = memo(function CelestialSky() {
           <stop offset="1" stopColor="#eff0dc" stopOpacity="0" />
         </radialGradient>
         <mask id="atmosphere-moon-crescent">
-          <rect x="-60" y="-60" width="120" height="120" fill="white" />
-          <circle cx="18" cy="-13" r="31" fill="black" />
+          <rect x="-140" y="-140" width="280" height="280" fill="white" />
+          {/* Shifted by --moon-phase-shift: 0 is a crescent, ±78 is a full moon. */}
+          <circle
+            className="moon-shadow"
+            cx="18"
+            cy="-13"
+            r="31"
+            fill="black"
+          />
         </mask>
       </defs>
       <g className="atmosphere-stars" opacity="0">

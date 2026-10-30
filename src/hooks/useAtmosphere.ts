@@ -38,6 +38,15 @@ export function paintAtmosphere(root: HTMLElement, sample: AtmosphereSample) {
     "--fog-opacity": number(sample.fog),
     "--night-veil": number(sample.nightVeil),
     "--day-hour": number(sample.hour),
+    "--moon-phase-shift": `${sample.moonPhaseShift.toFixed(2)}px`,
+
+    "--foliage-a": sample.foliage1,
+    "--foliage-b": sample.foliage2,
+    "--pine-a": sample.pine1,
+    "--pine-b": sample.pine2,
+    "--hill-far": sample.hillFar,
+    "--hill-near": sample.hillNear,
+    "--blossom": sample.blossom,
   };
 
   const previous = applied.get(root);
@@ -50,6 +59,7 @@ export function paintAtmosphere(root: HTMLElement, sample: AtmosphereSample) {
     weather: sample.weather,
     timeOfDay: sample.timeOfDay,
     atmosphereMode: sample.mode,
+    season: sample.season,
   };
   let changed = false;
   for (const [key, value] of Object.entries(labels)) {

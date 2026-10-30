@@ -6,7 +6,11 @@ export type Landscape =
   | "river"
   | "birch"
   | "snow_village"
-  | "meadow";
+  | "meadow"
+  | "orchard"
+  | "lake"
+  | "lavender"
+  | "bridge";
 
 export type AnimalKind =
   | "rabbit"
@@ -19,7 +23,12 @@ export type AnimalKind =
   | "dog"
   | "frog"
   | "badger"
-  | "deer";
+  | "deer"
+  | "mouse"
+  | "duck"
+  | "sheep"
+  | "pig"
+  | "turtle";
 
 export type Phase =
   | "waiting"
@@ -87,6 +96,26 @@ export const ALL_ANIMALS: Record<AnimalKind, AnimalDefinition> = {
     kind: "deer",
     name: "Jelonek",
   },
+  mouse: {
+    kind: "mouse",
+    name: "Myszka",
+  },
+  duck: {
+    kind: "duck",
+    name: "Kaczuszka",
+  },
+  sheep: {
+    kind: "sheep",
+    name: "Owieczka",
+  },
+  pig: {
+    kind: "pig",
+    name: "Prosiaczek",
+  },
+  turtle: {
+    kind: "turtle",
+    name: "Żółwik",
+  },
 };
 
 export const ANIMAL_KEYS: AnimalKind[] = Object.keys(
@@ -134,6 +163,26 @@ export const ALL_LOCATIONS: Record<Landscape, StopDefinition> = {
     landscape: "meadow",
     teaser: "Pełna pachnących polnych kwiatków",
   },
+  orchard: {
+    name: "Stary Sad",
+    landscape: "orchard",
+    teaser: "Gdzie dojrzewają jabłka i gruszki",
+  },
+  lake: {
+    name: "Ciche Jezioro",
+    landscape: "lake",
+    teaser: "Nad wodą, w której przegląda się niebo",
+  },
+  lavender: {
+    name: "Lawendowe Pole",
+    landscape: "lavender",
+    teaser: "Fioletowe rzędy aż po horyzont",
+  },
+  bridge: {
+    name: "Kamienny Most",
+    landscape: "bridge",
+    teaser: "Wysoko nad doliną, między łukami",
+  },
 };
 
 export const DESTINATION_LOCATIONS: Landscape[] = [
@@ -144,6 +193,10 @@ export const DESTINATION_LOCATIONS: Landscape[] = [
   "birch",
   "snow_village",
   "meadow",
+  "orchard",
+  "lake",
+  "lavender",
+  "bridge",
 ];
 
 export const PHASE_DURATION: Record<Exclude<Phase, "waiting">, number> = {
@@ -155,6 +208,28 @@ export const PHASE_DURATION: Record<Exclude<Phase, "waiting">, number> = {
   returning: 2600,
   unboarding: 2400,
 };
+
+/**
+ * Parent pace multiplier. Every phase is scaled by the same factor, so the
+ * *proportions* of a round never change — the atmosphere road-progress maths
+ * stays valid at any pace.
+ */
+export const PACE_PRESETS = [
+  { value: 1.45, label: "Bardzo spokojne (najwolniej)" },
+  { value: 1.2, label: "Spokojne" },
+  { value: 1, label: "Zwykłe (domyślnie)" },
+  { value: 0.8, label: "Żywe" },
+] as const;
+
+export const DEFAULT_PACE = 1;
+
+export function phaseDuration(
+  phase: Exclude<Phase, "waiting">,
+  pace: number = DEFAULT_PACE,
+): number {
+  const safe = Number.isFinite(pace) && pace > 0 ? pace : DEFAULT_PACE;
+  return PHASE_DURATION[phase] * safe;
+}
 
 export interface SessionPlan {
   driver: AnimalKind;
@@ -251,6 +326,8 @@ export interface JourneySettings {
   timeOverride: "auto" | "day" | "night" | "dawn" | "dusk";
   roundsBeforeRest: number; // e.g. 4 rounds before rest screen, 0 = infinite
   playtimeLimitMinutes: number; // 0 = no limit
+  /** Scales every phase duration; 1 is the authored tempo. */
+  pace: number;
   /** Who and where for the NEXT journey; changes apply from its start. */
   planner: JourneyPlanner;
 }
@@ -260,6 +337,7 @@ export const defaultSettings: JourneySettings = {
   timeOverride: "auto",
   roundsBeforeRest: 4,
   playtimeLimitMinutes: 20,
+  pace: DEFAULT_PACE,
   planner: defaultPlanner,
 };
 

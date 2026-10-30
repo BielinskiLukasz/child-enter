@@ -4,6 +4,7 @@ import {
   ALL_LOCATIONS,
   ANIMAL_KEYS,
   DESTINATION_LOCATIONS,
+  PACE_PRESETS,
   defaultPlanner,
   type AnimalKind,
   type JourneyPlanner,
@@ -203,6 +204,32 @@ export function ParentModal({
               <p className="parent-label mt-2">
                 Czas liczy się, gdy ta karta jest widoczna. Postój pociągu
                 również wlicza się do czasu zabawy.
+              </p>
+            </section>
+
+            <section className="parent-section">
+              <h3 className="parent-section-title">Tempo podróży</h3>
+              <label className="parent-label" htmlFor="pace">
+                Jak szybko jedzie pociąg:
+              </label>
+              <select
+                id="pace"
+                value={settings.pace}
+                onChange={(e) =>
+                  onUpdateSettings({ pace: Number(e.target.value) })
+                }
+                className="parent-select"
+              >
+                {PACE_PRESETS.map((preset) => (
+                  <option key={preset.value} value={preset.value}>
+                    {preset.label}
+                  </option>
+                ))}
+              </select>
+              <p className="parent-label mt-2">
+                Zmiana działa od razu i obejmuje całą podróż: przejazdy,
+                wsiadanie i krajobrazy. Pociąg nadal czeka na stacji tak długo,
+                jak trzeba.
               </p>
             </section>
 

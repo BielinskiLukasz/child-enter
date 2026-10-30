@@ -18,6 +18,16 @@
   --sun-opacity: 1;
   --moon-opacity: 0;
   --stars-opacity: 0;
+  --moon-phase-shift: 24px;
+  --day-hour: 12;
+  /* Seasonal foliage; the summer values are the authored defaults. */
+  --foliage-a: #8fa87a;
+  --foliage-b: #7f9c6c;
+  --pine-a: #6d9075;
+  --pine-b: #86a88b;
+  --hill-far: #cdd8b2;
+  --hill-near: #b4c99a;
+  --blossom: #f2e6b0;
 }
 
 .little-world {
@@ -88,6 +98,27 @@
 
 .atmosphere-night-veil {
   opacity: var(--night-veil);
+}
+
+/* Moon phase: 0 is a crescent, ±78 is a full moon. Because both the hour and
+   minute hands land on the same visual angle at midnight, the daily wrap is
+   invisible. */
+.moon-shadow {
+  transform: translateX(var(--moon-phase-shift, 24px));
+}
+
+/* The station clock agrees with the sky. */
+.clock-hand {
+  transform-box: view-box;
+  transform-origin: 267px 310px;
+}
+
+.clock-hand--hour {
+  transform: rotate(calc(var(--day-hour, 12) * 30deg));
+}
+
+.clock-hand--minute {
+  transform: rotate(calc(var(--day-hour, 12) * 180deg));
 }
 
 .atmosphere-weather,
@@ -199,5 +230,11 @@
   .snow-flake {
     transform: translateY(360px);
     opacity: 0.65;
+  }
+
+  /* Passenger reactions to the sky keep their pose but stop moving. */
+  .passenger-mood--dozer,
+  .passenger-mood--watcher {
+    animation: none !important;
   }
 }

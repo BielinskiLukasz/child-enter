@@ -7,8 +7,16 @@ import {
 export const WEATHER_TYPES = ["clear", "rain", "snow", "fog"] as const;
 export type Weather = (typeof WEATHER_TYPES)[number];
 export type TimeOfDay = "dawn" | "day" | "dusk" | "night";
+export type Season = "spring" | "summer" | "autumn" | "winter";
 export type AtmosphereMode = "dynamic" | "override";
-export type InitialConditions = { hour: number; weather: Weather };
+export type InitialConditions = {
+  hour: number;
+  weather: Weather;
+  /** 0..1 moon phase for this session; fixed so the moon looks consistent. */
+  moonPhase?: number;
+  /** 0..1 position in the year when the session starts. */
+  seasonStart?: number;
+};
 export type RGB = [number, number, number];
 export type WeatherWeights = Record<Weather, number>;
 
@@ -29,11 +37,23 @@ export interface AtmosphereSample {
   cloudiness: number;
   sun: { x: number; y: number; opacity: number };
   moon: { x: number; y: number; opacity: number };
+  /** Horizontal offset of the moon's shadow disc, in scene units. */
+  moonPhaseShift: number;
   stars: number;
   rain: number;
   snow: number;
   fog: number;
   nightVeil: number;
+  season: Season;
+
+  /** Seasonal foliage/ground palette, already darkened for night. */
+  foliage1: string;
+  foliage2: string;
+  pine1: string;
+  pine2: string;
+  hillFar: string;
+  hillNear: string;
+  blossom: string;
 }
 
 export const clamp = (value: number, min = 0, max = 1) =>
@@ -104,6 +124,8 @@ export function randomInitialConditions(
   return {
     hour: pick() * 24,
     weather: WEATHER_TYPES[Math.floor(pick() * WEATHER_TYPES.length)],
+    moonPhase: pick(),
+    seasonStart: pick(),
   };
 }
 
@@ -191,6 +213,97 @@ function skyAt(hour: number) {
   };
 }
 
+type SeasonPalette = {
+  season: Season;
+  foliage1: string;
+  foliage2: string;
+  pine1: string;
+  pine2: string;
+  hillFar: string;
+  hillNear: string;
+  blossom: string;
+};
+
+/**
+ * The year as four palette stops, wrapped so winter melts back into spring.
+ * Only the leafy landscapes read these; rock, water and snow keep their own
+ * fixed palettes because seasons barely change them.
+ */
+const SEASON_STOPS: SeasonPalette[] = [
+  {
+    season: "spring",
+    foliage1: "#a8c489",
+    foliage2: "#c6d89c",
+    pine1: "#86a98d",
+    pine2: "#9dbca0",
+    hillFar: "#e0e7c8",
+    hillNear: "#cad9aa",
+    blossom: "#f4cfd8",
+  },
+  {
+    season: "summer",
+    foliage1: "#8fa87a",
+    foliage2: "#7f9c6c",
+    pine1: "#6d9075",
+    pine2: "#86a88b",
+    hillFar: "#cdd8b2",
+    hillNear: "#b4c99a",
+    blossom: "#f2e6b0",
+  },
+  {
+    season: "autumn",
+    foliage1: "#c99a5e",
+    foliage2: "#b8794a",
+    pine1: "#7d9470",
+    pine2: "#8fa37f",
+    hillFar: "#ddcfae",
+    hillNear: "#cbb894",
+    blossom: "#e8b46a",
+  },
+  {
+    season: "winter",
+    foliage1: "#bcc7bd",
+    foliage2: "#d0d8cf",
+    pine1: "#7d948a",
+    pine2: "#93a89e",
+    hillFar: "#e0e5e5",
+    hillNear: "#ccd6d6",
+    blossom: "#eef2f0",
+  },
+];
+
+const SEASON_KEYS: (keyof Omit<SeasonPalette, "season">)[] = [
+  "foliage1",
+  "foliage2",
+  "pine1",
+  "pine2",
+  "hillFar",
+  "hillNear",
+  "blossom",
+];
+
+/** Blends the four seasonal palettes, then darkens them for night. */
+function seasonAt(position: number, night: number): SeasonPalette {
+  const turn = wrap(position, 1) * SEASON_STOPS.length;
+  const index = Math.floor(turn) % SEASON_STOPS.length;
+  const next = (index + 1) % SEASON_STOPS.length;
+  const t = smoothstep(0, 1, turn - Math.floor(turn));
+  const from = SEASON_STOPS[index];
+  const to = SEASON_STOPS[next];
+  const blended = {
+    season: t < 0.5 ? from.season : to.season,
+  } as SeasonPalette;
+  for (const key of SEASON_KEYS) {
+    // Night pulls the foliage toward the same blue the sky uses.
+    blended[key] = mixColor(
+      mixColor(from[key], to[key], t),
+      "#3d5470",
+      night * 0.55,
+    );
+  }
+  return blended;
+}
+
 function celestial(hour: number, rise: number, set: number) {
   const progress = clamp((hour - rise) / (set - rise));
   return {
@@ -247,6 +360,14 @@ export function sampleAtmosphere(
 
   const sky = skyAt(hour);
   const day = 1 - sky.night;
+
+  // A full year passes over four rounds, so a season lasts about one round and
+  // the change is slow enough to notice without ever feeling like a slideshow.
+  const season = seasonAt(
+    (initial.seasonStart ?? 0) + totalTurns / 4,
+    sky.night,
+  );
+
   const cloudiness = clamp(
     weights.rain * 0.9 + weights.snow * 0.65 + weights.fog * 0.8,
   );
@@ -279,10 +400,20 @@ export function sampleAtmosphere(
     cloudiness,
     sun: { ...sun, opacity: sunVisibility },
     moon: { ...moon, opacity: 1 - sunVisibility },
+    // 0 = full moon, 0.5 = thinnest crescent, 1 = full again from the other side.
+    moonPhaseShift: 78 * (1 - 2 * clamp(initial.moonPhase ?? 0.35)),
     stars: Math.pow(sky.night, 1.7) * (1 - cloudiness * 0.88),
     rain: Math.pow(weights.rain, 1.1) * 0.73,
     snow: Math.pow(weights.snow, 1.15) * 0.9,
     fog: weights.fog * 0.68 + weights.rain * 0.04 + weights.snow * 0.06,
     nightVeil: sky.night * 0.32 + cloudiness * 0.055,
+    season: season.season,
+    foliage1: season.foliage1,
+    foliage2: season.foliage2,
+    pine1: season.pine1,
+    pine2: season.pine2,
+    hillFar: season.hillFar,
+    hillNear: season.hillNear,
+    blossom: season.blossom,
   };
 }

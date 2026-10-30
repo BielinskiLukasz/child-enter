@@ -116,11 +116,11 @@ function BirchTree({
       {/* Crown */}
       <path
         d="M0-195c-38 0-65 45-68 85-3 42 22 75 68 75s71-33 68-75c-3-40-30-85-68-85Z"
-        fill="#c8d697"
+        fill="var(--foliage-b, #c8d697)"
       />
       <path
         d="M-15-175c-25 0-48 30-45 60 3 30 22 55 45 55s45-25 45-55c0-30-20-60-45-60Z"
-        fill="#dfd68a"
+        fill="var(--foliage-a, #dfd68a)"
         opacity=".65"
       />
       {/* White birch trunk */}
@@ -138,9 +138,9 @@ function BirchTree({
         strokeLinecap="round"
       />
       {/* Leaves details */}
-      <circle cx="-25" cy="-120" r="4" fill="#f7f2b5" />
-      <circle cx="28" cy="-135" r="5" fill="#f7f2b5" />
-      <circle cx="5" cy="-165" r="4.5" fill="#f7f2b5" />
+      <circle cx="-25" cy="-120" r="4" fill="var(--blossom, #f7f2b5)" />
+      <circle cx="28" cy="-135" r="5" fill="var(--blossom, #f7f2b5)" />
+      <circle cx="5" cy="-165" r="4.5" fill="var(--blossom, #f7f2b5)" />
     </g>
   );
 }
@@ -274,6 +274,182 @@ function Cottage({
   );
 }
 
+/** Low fruit tree with a seasonal crown and a few hanging fruits. */
+function FruitTree({
+  x,
+  y,
+  scale = 1,
+  fruit = "#d98a72",
+}: {
+  x: number;
+  y: number;
+  scale?: number;
+  fruit?: string;
+}) {
+  return (
+    <g transform={`translate(${x} ${y}) scale(${scale})`}>
+      <path
+        d="M0-72v76"
+        stroke="#8a6b4d"
+        strokeWidth="9"
+        strokeLinecap="round"
+      />
+      <path
+        d="M0-46l-22-20M0-38l24-18"
+        stroke="#8a6b4d"
+        strokeWidth="6"
+        strokeLinecap="round"
+      />
+      <path
+        d="M0-132c-34 0-56 22-56 46s22 42 56 42 56-18 56-42-22-46-56-46Z"
+        fill="var(--foliage-a, #93ab7c)"
+      />
+      <path
+        d="M-20-118c-18 2-28 16-26 30 14 6 30-2 32-16-1-8-3-13-6-14Z"
+        fill="var(--foliage-b, #a8bd8c)"
+        opacity=".75"
+      />
+      {/* Fruits */}
+      {[
+        [-30, -96],
+        [12, -104],
+        [34, -84],
+        [-8, -76],
+        [22, -62],
+      ].map(([fx, fy]) => (
+        <g key={`${fx}-${fy}`}>
+          <circle cx={fx} cy={fy} r="6" fill={fruit} />
+          <circle cx={fx - 2} cy={fy - 2} r="1.6" fill="#fff" opacity=".45" />
+        </g>
+      ))}
+    </g>
+  );
+}
+
+/** One lavender bush: a mound of leaves with upright purple spikes. */
+function LavenderBush({
+  x,
+  y,
+  scale = 1,
+}: {
+  x: number;
+  y: number;
+  scale?: number;
+}) {
+  return (
+    <g transform={`translate(${x} ${y}) scale(${scale})`}>
+      <path d="M-26 0q4-16 26-16t26 16Z" fill="var(--foliage-b, #9aa87f)" />
+      {/* One spike = stem + head. The pale highlight was dropped to keep this
+          the heaviest scene under a sane node budget. */}
+      {[-20, -12, -4, 4, 12, 20].map((sx, i) => (
+        <g key={sx}>
+          <path
+            d={`M${sx}-8v-${26 + (i % 3) * 9}`}
+            stroke="#7f8c68"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+          <ellipse
+            cx={sx}
+            cy={-16 - (26 + (i % 3) * 9)}
+            rx="4.2"
+            ry={11 + (i % 3) * 3}
+            fill={i % 2 ? "#9d8bc0" : "#8a7bb4"}
+          />
+        </g>
+      ))}
+    </g>
+  );
+}
+
+/** Stone viaduct: piers, arches and a parapet the track runs along. */
+function StoneBridge({
+  x,
+  y,
+  scale = 1,
+}: {
+  x: number;
+  y: number;
+  scale?: number;
+}) {
+  return (
+    <g transform={`translate(${x} ${y}) scale(${scale})`}>
+      {/* Arches cut out of the wall */}
+      <path
+        d="M-330 0v-96h660V0h-58v-4q0-46-46-46t-46 46v4h-58v-4q0-46-46-46t-46 46v4h-58v-4q0-46-46-46t-46 46v4h-58v-4q0-46-46-46t-46 46v4Z"
+        fill="#c9c0ab"
+      />
+      <path d="M-330-96h660v14h-660Z" fill="#ded5bf" />
+      <path d="M-330-82h660" stroke="#a99f89" strokeWidth="3" />
+      {/* Voussoirs around each arch */}
+      {[-238, -112, 14, 140].map((ax) => (
+        <g key={ax}>
+          <path
+            d={`M${ax - 46}-4q0-46 46-46t46 46`}
+            fill="none"
+            stroke="#b3a891"
+            strokeWidth="5"
+          />
+          {[-40, -26, -10, 8, 24, 38].map((vx) => (
+            <path
+              key={vx}
+              d={`M${ax + vx * 0.85}-${-4 - Math.sqrt(Math.max(0, 2116 - vx * vx)) * 0.85}l${vx * 0.1} ${-6}`}
+              stroke="#b8ad95"
+              strokeWidth="2"
+            />
+          ))}
+        </g>
+      ))}
+      {/* Parapet posts */}
+      {Array.from({ length: 17 }, (_, i) => (
+        <path
+          key={i}
+          d={`M${-320 + i * 40}-96v-13`}
+          stroke="#cfc6b0"
+          strokeWidth="7"
+          strokeLinecap="round"
+        />
+      ))}
+      <path
+        d="M-330-112h660"
+        stroke="#e6ddc7"
+        strokeWidth="6"
+        strokeLinecap="round"
+      />
+    </g>
+  );
+}
+
+/** Wooden jetty out over still water. */
+function Jetty({ x, y, scale = 1 }: { x: number; y: number; scale?: number }) {
+  return (
+    <g transform={`translate(${x} ${y}) scale(${scale})`}>
+      <path d="M0 0h120v9H0Z" fill="#a5805c" />
+      <path
+        d="M4 9v34M112 9v34"
+        stroke="#8a6a4a"
+        strokeWidth="7"
+        strokeLinecap="round"
+      />
+      <path d="M0 0h120" stroke="#c6a37c" strokeWidth="3" />
+      <path d="M18 4h84" stroke="#8f6d4c" strokeWidth="2" opacity=".6" />
+      {/* Mooring post and rope */}
+      <path
+        d="M126 2v-26"
+        stroke="#8a6a4a"
+        strokeWidth="6"
+        strokeLinecap="round"
+      />
+      <path
+        d="M126-22q-16 8-30 20"
+        stroke="#cbb894"
+        strokeWidth="2.5"
+        fill="none"
+      />
+    </g>
+  );
+}
+
 function Birds({ x, y, scale = 1 }: { x: number; y: number; scale?: number }) {
   return (
     <g
@@ -313,16 +489,21 @@ export const Scenery = memo(function Scenery({
           />
           <path
             d="M-100 323C128 181 279 218 475 292S850 248 1011 288s328-68 689 0v256H-100Z"
-            fill="#cadaca"
+            fill="var(--hill-far, #cadaca)"
           />
           <path
             d="M-100 373C160 296 334 290 566 348s490-97 724-34 297 23 410 0v240H-100Z"
-            fill="#b4c9b0"
+            fill="var(--hill-near, #b4c9b0)"
           />
           <Cottage x={1033} y={335} scale={0.49} />
-          <Pine x={952} y={328} scale={0.41} color="#93ad94" />
-          <Pine x={991} y={329} scale={0.27} color="#8da78b" />
-          <Tree x={1111} y={337} scale={0.4} color="#9bb18c" />
+          <Pine x={952} y={328} scale={0.41} color="var(--pine-a, #93ad94)" />
+          <Pine x={991} y={329} scale={0.27} color="var(--pine-b, #8da78b)" />
+          <Tree
+            x={1111}
+            y={337}
+            scale={0.4}
+            color="var(--foliage-a, #9bb18c)"
+          />
           <path
             d="M1036 336c-80 15-46 45-108 58s-58 31-105 51"
             fill="none"
@@ -336,7 +517,7 @@ export const Scenery = memo(function Scenery({
         <>
           <path
             d="M-100 348C157 211 359 234 530 286S836 164 1074 251s366-6 626 23v276H-100Z"
-            fill="#c5d6c9"
+            fill="var(--hill-far, #c5d6c9)"
           />
           {[
             55, 148, 239, 362, 443, 581, 730, 827, 951, 1087, 1217, 1374, 1510,
@@ -347,16 +528,23 @@ export const Scenery = memo(function Scenery({
               x={x}
               y={362 + (i % 3) * 13}
               scale={0.63 + (i % 4) * 0.13}
-              color={i % 2 ? "#94b29c" : "#a8bfaa"}
+              color={
+                i % 2 ? "var(--pine-a, #94b29c)" : "var(--pine-b, #a8bfaa)"
+              }
             />
           ))}
           <path
             d="M-100 420c217-80 431-54 677-23s472-44 650-37 289 30 473 22v168H-100Z"
-            fill="#abc2a8"
+            fill="var(--hill-near, #abc2a8)"
           />
-          <Tree x={980} y={405} scale={0.78} color="#8fa885" />
-          <Pine x={1080} y={405} scale={0.85} color="#789a80" />
-          <Pine x={1482} y={416} scale={1.18} color="#789a80" />
+          <Tree
+            x={980}
+            y={405}
+            scale={0.78}
+            color="var(--foliage-a, #8fa885)"
+          />
+          <Pine x={1080} y={405} scale={0.85} color="var(--pine-a, #789a80)" />
+          <Pine x={1482} y={416} scale={1.18} color="var(--pine-a, #789a80)" />
           <Birds x={750} y={146} scale={0.7} />
         </>
       )}
@@ -364,11 +552,11 @@ export const Scenery = memo(function Scenery({
         <>
           <path
             d="M-100 330C108 246 304 200 535 282s493-102 762-26 360 17 403 18v276H-100Z"
-            fill="#d3dcc0"
+            fill="var(--hill-far, #d3dcc0)"
           />
           <path
             d="M-100 381c290-72 512-36 722-3s472-77 740-50 299 37 338 40v182H-100Z"
-            fill="#bfcba5"
+            fill="var(--hill-near, #bfcba5)"
           />
           <path
             d="M578 353q272-77 466-30M635 376q231-65 448-30M743 396q196-52 362-22"
@@ -379,8 +567,18 @@ export const Scenery = memo(function Scenery({
           <Cottage x={1017} y={302} scale={0.69} />
           <Cottage x={1144} y={324} scale={0.48} color="#e9d7b0" />
           <Cottage x={1269} y={311} scale={0.65} color="#e5d6b6" />
-          <Tree x={923} y={311} scale={0.46} color="#a3b18b" />
-          <Tree x={1353} y={337} scale={0.58} color="#9eb18a" />
+          <Tree
+            x={923}
+            y={311}
+            scale={0.46}
+            color="var(--foliage-b, #a3b18b)"
+          />
+          <Tree
+            x={1353}
+            y={337}
+            scale={0.58}
+            color="var(--foliage-a, #9eb18a)"
+          />
           <g stroke="#eae6cc" strokeWidth="4" fill="none">
             <path d="M942 343h380m-380 13h380" />
             {Array.from({ length: 20 }, (_, i) => (
@@ -497,15 +695,20 @@ export const Scenery = memo(function Scenery({
         <>
           <path
             d="M-100 325c260-60 520 20 760 0s460-60 700-15 280 20 340 25v305H-100Z"
-            fill="#d4dfb9"
+            fill="var(--hill-far, #d4dfb9)"
           />
           <path
             d="M-100 385c270-40 520 15 760-15s470-35 710 0 260 20 330 20v250H-100Z"
-            fill="#c0ce9e"
+            fill="var(--hill-near, #c0ce9e)"
           />
           <Windmill x={1080} y={350} scale={0.62} />
-          <Tree x={860} y={365} scale={0.6} color="#96ae84" />
-          <Tree x={1320} y={370} scale={0.68} color="#8aa277" />
+          <Tree x={860} y={365} scale={0.6} color="var(--foliage-a, #96ae84)" />
+          <Tree
+            x={1320}
+            y={370}
+            scale={0.68}
+            color="var(--foliage-b, #8aa277)"
+          />
           {/* Wildflowers */}
           {[920, 960, 1000, 1180, 1220, 1260].map((fx, i) => (
             <circle
@@ -513,10 +716,215 @@ export const Scenery = memo(function Scenery({
               cx={fx}
               cy={390 + (i % 3) * 6}
               r={3.5}
-              fill={i % 2 === 0 ? "#f9dd85" : "#e8a4a4"}
+              fill={i % 2 === 0 ? "var(--blossom, #f9dd85)" : "#e8a4a4"}
             />
           ))}
           <Birds x={800} y={140} scale={0.75} />
+        </>
+      )}
+      {landscape === "orchard" && (
+        <>
+          {/* Low orchard hills */}
+          <path
+            d="M-100 322c250-52 520 16 760-6s470-52 700-12 280 22 340 26v310H-100Z"
+            fill="var(--hill-far, #d2dcb8)"
+          />
+          <path
+            d="M-100 384c280-38 520 14 762-14s470-34 706 2 262 20 332 20v248H-100Z"
+            fill="var(--hill-near, #c2d0a0)"
+          />
+          {/* Two rows of fruit trees, further row smaller and paler */}
+          <FruitTree x={700} y={352} scale={0.46} fruit="#e0a58c" />
+          <FruitTree x={846} y={350} scale={0.42} fruit="#d9c27a" />
+          <FruitTree x={992} y={353} scale={0.47} fruit="#e0a58c" />
+          <FruitTree x={1140} y={350} scale={0.41} fruit="#cf8f76" />
+          <FruitTree x={1286} y={354} scale={0.45} fruit="#d9c27a" />
+          <FruitTree x={880} y={392} scale={0.66} fruit="#d9805f" />
+          <FruitTree x={1064} y={396} scale={0.72} fruit="#e2b45c" />
+          <FruitTree x={1252} y={392} scale={0.63} fruit="#d9805f" />
+          {/* Ladder and harvest baskets */}
+          <g stroke="#a3825c" strokeWidth="4" strokeLinecap="round">
+            <path d="M1148 396v-58M1168 396v-58" />
+            <path d="M1148 388h20M1148 372h20M1148 356h20M1148 344h20" />
+          </g>
+          {[
+            [760, 402],
+            [1180, 404],
+          ].map(([bx, by]) => (
+            <g key={bx} transform={`translate(${bx} ${by})`}>
+              <path d="M-16 0h32l-4 20h-24Z" fill="#c39a6b" />
+              <path d="M-16 0h32" stroke="#a67f52" strokeWidth="3" />
+              <circle cx="-6" cy="-3" r="5" fill="#d9805f" />
+              <circle cx="5" cy="-4" r="5" fill="#e2b45c" />
+            </g>
+          ))}
+          <Birds x={820} y={142} scale={0.72} />
+        </>
+      )}
+      {landscape === "lake" && (
+        <>
+          <path
+            d="M-100 318c260-48 520 18 760-4s470-48 700-10 280 20 340 24v312H-100Z"
+            fill="#c8d6d2"
+          />
+          {/* Still lake water */}
+          <path
+            d="M-100 372c300-24 560 26 820 10s520-32 780-6v264H-100Z"
+            fill="#9fc4c6"
+          />
+          <path
+            d="M-100 372c300-24 560 26 820 10s520-32 780-6v34H-100Z"
+            fill="#b9d5d4"
+            opacity=".55"
+          />
+          {/* Reflections of the far shore */}
+          <path
+            d="M120 402q150 12 300 2M560 410q170 10 330 0M1080 404q150 10 300 0"
+            stroke="#dceceb"
+            strokeWidth="4"
+            fill="none"
+            opacity=".5"
+          />
+          {/* Far shore trees */}
+          <Tree x={250} y={352} scale={0.4} color="var(--foliage-a, #8ba88f)" />
+          <Tree
+            x={356}
+            y={356}
+            scale={0.34}
+            color="var(--foliage-b, #9ab69a)"
+            variant={1}
+          />
+          <Pine x={452} y={352} scale={0.4} color="#7f9c8c" />
+          <Tree
+            x={1420}
+            y={356}
+            scale={0.38}
+            color="var(--foliage-a, #8ba88f)"
+          />
+          {/* Jetty, boat and lilies */}
+          <Jetty x={980} y={392} scale={0.8} />
+          <Sailboat x={1230} y={404} scale={0.6} />
+          {[
+            [700, 424],
+            [760, 438],
+            [880, 430],
+            [1330, 436],
+          ].map(([lx, ly]) => (
+            <g key={lx} transform={`translate(${lx} ${ly})`}>
+              <ellipse rx="15" ry="5" fill="#7fa37f" opacity=".85" />
+              <path d="M0-1q9-6 13 1-6 5-13-1Z" fill="#93b58f" />
+              {lx % 2 === 0 && <circle cx="4" cy="-4" r="3.4" fill="#f4e2ba" />}
+            </g>
+          ))}
+          {/* Reeds */}
+          <g stroke="#6e8a71" strokeWidth="3" strokeLinecap="round">
+            <path d="M560 424l-6-38M566 424l2-44M573 424l9-34M1520 418l-5-32M1527 418l4-38" />
+          </g>
+          <Birds x={640} y={148} scale={0.7} />
+        </>
+      )}
+      {landscape === "lavender" && (
+        <>
+          <path
+            d="M-100 320c250-50 520 18 760-4s470-50 700-10 280 20 340 24v310H-100Z"
+            fill="var(--hill-far, #d6d8c0)"
+          />
+          <path
+            d="M-100 378c280-36 520 12 762-14s470-30 706 2 262 18 332 18v256H-100Z"
+            fill="#cfc4b4"
+          />
+          {/* Perspective rows of lavender */}
+          {[
+            { y: 372, s: 0.3, o: 0.55 },
+            { y: 388, s: 0.4, o: 0.7 },
+            { y: 406, s: 0.52, o: 0.82 },
+            { y: 426, s: 0.66, o: 0.92 },
+            { y: 448, s: 0.82, o: 1 },
+          ].map(({ y, s, o }, row) => (
+            <g key={row} opacity={o}>
+              {Array.from({ length: 9 }, (_, i) => (
+                <LavenderBush
+                  key={i}
+                  x={-40 + i * 210 + row * 26}
+                  y={y}
+                  scale={s}
+                />
+              ))}
+            </g>
+          ))}
+          {/* Stone field hut and a tall cypress */}
+          <g transform="translate(1330 356) scale(.5)">
+            <rect
+              x="-52"
+              y="-58"
+              width="104"
+              height="58"
+              rx="3"
+              fill="#cfc6b2"
+            />
+            <path d="M-64-56 0-104 64-56Z" fill="#9d8468" />
+            <rect
+              x="-16"
+              y="-40"
+              width="32"
+              height="40"
+              rx="2"
+              fill="#8d8471"
+            />
+            <rect
+              x="-46"
+              y="-46"
+              width="20"
+              height="18"
+              rx="2"
+              fill="var(--window, #f0e2bb)"
+            />
+          </g>
+          <g transform="translate(1436 362) scale(.62)">
+            <path
+              d="M0-140c-16 0-26 46-26 74s10 68 26 68 26-40 26-68-10-74-26-74Z"
+              fill="#6d8a6d"
+            />
+            <path d="M0-70v72" stroke="#5d7a5d" strokeWidth="4" />
+          </g>
+          <Birds x={700} y={146} scale={0.68} />
+        </>
+      )}
+      {landscape === "bridge" && (
+        <>
+          {/* Distant valley walls */}
+          <path
+            d="M-100 356 220 168q16-11 30 2l206 176 168-142q14-12 28 1l214 190 176-126q15-11 29 3l269 208Z"
+            fill="#c3d2cd"
+          />
+          <path
+            d="M-100 400c280-46 540 12 800-8s470-40 700 0 240 16 300 16v232H-100Z"
+            fill="#a9bfb4"
+          />
+          {/* River far below the viaduct */}
+          <path
+            d="M-100 436c320-18 560 20 830 8s520-24 780 0v204H-100Z"
+            fill="#9dc0c2"
+          />
+          <path
+            d="M60 466q300-14 560 4t560-8"
+            stroke="#d6e9e7"
+            strokeWidth="4"
+            fill="none"
+            opacity=".55"
+          />
+          {/* The viaduct itself */}
+          <StoneBridge x={880} y={424} scale={0.86} />
+          {/* Trees clinging to the valley sides */}
+          <Pine x={120} y={404} scale={0.62} color="#7d9a86" />
+          <Tree
+            x={248}
+            y={410}
+            scale={0.55}
+            color="var(--foliage-a, #8aa58a)"
+          />
+          <Pine x={1520} y={406} scale={0.7} color="#718f7c" />
+          <Birds x={520} y={152} scale={0.72} />
         </>
       )}
     </g>

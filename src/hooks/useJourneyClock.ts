@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef } from "react";
-import { PHASE_DURATION, type JourneyState } from "../game";
+import { phaseDuration, type JourneyState } from "../game";
 
 export type PhaseClock = { read: () => number };
 
@@ -10,7 +10,8 @@ export function useJourneyClock(journey: JourneyState, onAdvance: () => void) {
     clock.current = { read: () => 0 };
     if (journey.phase === "waiting") return;
 
-    const duration = PHASE_DURATION[journey.phase];
+    // The parent pace setting scales every phase by the same factor.
+    const duration = phaseDuration(journey.phase, journey.settings.pace);
     let elapsed = 0;
     let startedAt = 0;
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -48,6 +49,6 @@ export function useJourneyClock(journey: JourneyState, onAdvance: () => void) {
       clearTimeout(timer);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [journey.phase, journey.tourIndex, onAdvance]);
+  }, [journey.phase, journey.tourIndex, journey.settings.pace, onAdvance]);
   return clock;
 }
