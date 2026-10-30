@@ -49,6 +49,141 @@ The on-screen `Enter` keycap is a real `<button>` sized for a small finger (at l
 
 There are two offline delivery modes. The production `dist/index.html` is self-contained and works directly offline, but file URLs cannot install a service worker. For an installable PWA, deploy the complete `dist/` directory to HTTPS (for example GitHub Pages) or localhost. On the first online visit the service worker precaches the HTML shell, manifest, and icon PNGs; later visits can open while offline. Updates are served network-first for page navigations and replace cached shell assets for the next visit.
 
+## Home Page UI Reference
+
+The app is a single full-viewport screen; there is no routing. This section describes that screen as built, so future work can extend it without breaking its calm, one-control character. Markup lives in `src/App.tsx`; layout in `src/styles/layout.css`; breakpoints in `src/styles/responsive.css`; colour tokens in `src/styles/tokens.css` and `src/atmosphere.css`.
+
+### Design principles (do not break)
+
+- **One child control.** The only thing a child can act on is the `Enter` keycap. Everything else is `pointer-events: none`, decorative, or parent-only. New child-facing interactions are out of scope.
+- **Nothing is urgent.** No countdowns, scores, badges, or progress bars. The hourglass is a wordless icon with no number. Time pressure is expressed only as a gentle dim of the scene.
+- **Calm palette, no hard edges.** Paper-cream base (`#f6f3e8`), muted greens for text, one warm accent (`#9c7155`). A faint SVG noise overlay (`.little-world::after`, 12% opacity) sits over everything to keep flat fills from looking digital.
+- **The sky is the theme engine.** Nearly every colour is a CSS variable set at runtime by `useAtmosphere`. Hard-code a colour only for things that must never change with the time of day.
+
+### Art style
+
+The illustration is a **flat, paper-cut storybook** — closer to a gouache picture book or layered construction paper than to a cartoon. Everything is hand-authored inline SVG in `src/components/illustration/`; there are no raster images. New artwork should pass as a page from the same book.
+
+**Rendering rules (as implemented)**
+
+- **Fills, not outlines.** Shapes are built from solid fills. Strokes appear only where a stroke _is_ the object — a blade of grass, a tree trunk, a whisker, a birch bark notch, a railway rail. There are no black contour lines around characters or props.
+- **Every line is soft.** All 34 stroke uses are `strokeLinecap="round"`; weights cluster at 2–5 px (in a 1600 × 640 viewBox), up to 8–9 px for trunks and ties. Nothing is sharp or hairline.
+- **No digital effects.** Zero `<filter>`s, blurs, or drop shadows in the scene. Depth comes from stacking: a lighter band at the top of a carriage (`#f9f0d3` at 32 % opacity), a darker "shade" tone per carriage, a faint 10 %-opacity ellipse under the train. Three `linearGradient`s and one `radialGradient` exist in total (ground fade, fog, night wash, moon halo) and all are smooth two-stop washes.
+- **Rounded corners everywhere.** Rectangles carry `rx` 3–11; the locomotive boiler is `rx="29"`. Hills, water and clouds are drawn with quadratic/cubic curves, never polygons.
+- **One paper grain over all of it.** The 12 % SVG-noise overlay on `.little-world::after` is part of the look; it is what makes flat fills read as pigment on paper. Don't disable it for new elements.
+
+**Palette.** Low saturation, warm, slightly desaturated as if seen through cream paper. Pure black never appears; pure white is reserved for four tiny points of light — the owl's eye glints and the deer's spots — and everything else that reads as "white" is a cream.
+
+| Family         | Representative values                             | Used for                                                                                 |
+| -------------- | ------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Paper creams   | `#fffcf3` `#f5eedb` `#f7f2b5` `#f8f5e8`           | Clouds, steam, snow caps, light fur, petals, window light                                |
+| Meadow greens  | `#8da982` `#94aa83` `#648a71` `#557c66` `#a8bfaa` | Tree crowns and pines — several nearby greens per scene, never one flat green            |
+| Ink greens     | `#3f4d40` `#3e5b4d` `#405d4b` `#4e7163`           | Eyes, loco cab, chassis, conductor's cap, text ink                                       |
+| Earth and bark | `#b96f52` `#b78268` `#9c7155` `#777c58`           | Locomotive body, roofs, trunks, accent text                                              |
+| Carriage trio  | `#dfbc70` / `#a5bbae` / `#d4a38c`                 | Ochre, sage, clay — one per carriage, each with a matching darker `shade` and olive roof |
+| Blush          | `#cf9f89` (55 % opacity) `#dcb9a8` `#deb09d`      | Cheeks, inner ears                                                                       |
+| Water and dusk | `#a6c8c7` `#c0d4cf` `#b7c4ce`                     | River, snow shadow, cloudy-sky tint                                                      |
+
+Weather and time of day do **not** repaint the artwork; they tint it through the CSS variables listed under _Theming contract_. That is why fixed colours above stay plausible at noon and at 1 a.m.
+
+**Character grammar.** All eleven animals are one template with swappable parts, which is what keeps them reading as a family:
+
+- Round or near-round head (`r ≈ 30–34`) over a smaller round body; stubby oval paws; one arm raised in a slow `friendly-wave`.
+- A shared face: two small dark ovals for eyes (`#3f4d40`), a tiny rounded nose (`#495043`), a two-bump smile, and translucent pink cheeks. The owl alone swaps in big cream eye-discs and a beak.
+- Species is carried **only by silhouette** — rabbit ears, fox muzzle, hedgehog quills, owl tufts, squirrel ear-tufts, cat triangles, floppy dog ears, frog eye-bumps, badger stripe, deer antlers — plus one fur colour from `furColors`. No character has patterns, outlines or extra details beyond that.
+- Every animal wears a small scarf/collar in one of three muted tones; the driver adds a green two-tone conductor's cap with a gold badge.
+
+When adding an animal: start from the template, change the fur hex and the silhouette layer, keep the face, keep the scarf, and put it in the `furColors` map so the palette stays coherent.
+
+**Scenery grammar.** Each of the eight landscapes is three to four overlapping hill bands (lighter and bluer with distance) plus two or three reusable props from a small kit: `Pine`, `Tree` (two crown shapes), `BirchTree`, `Cottage`, `Windmill`, `Sailboat`, reeds, fence lines, wildflowers. Distant mountains get a cream snow-cap triangle; nothing in the far ground has detail smaller than a window. Birds are a single two-arc stroke. New landscapes should be assembled from this kit before new props are drawn.
+
+**What the style is not.** No gradients on characters, no gloss or specular highlights, no thick outlines, no saturated primaries, no sharp corners, no fine texture inside shapes, no perspective. If a new element looks like a sticker, an icon or a video-game sprite, it is off-style.
+
+### Anatomy, top to bottom
+
+| Zone                 | Element / class                                                                | Purpose                                                                                                                                                                                                                                                                                                      | Interactive?           |
+| -------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------- |
+| Screen-reader region | `.sr-only[aria-live="polite"]`                                                 | Single live region; announces `journeyAriaAnnouncement()` on every phase change. Keep exactly one live region on the page.                                                                                                                                                                                   | No                     |
+| Parent value strip   | `<aside class="parent-value-strip">` → collapses to `.parent-pill-trigger`     | Safety line: _Bez dźwięku · Bez reklam · Bez internetu · Jedna interakcja · Nic nie wychodzi z urządzenia_. Has **Ustawienia** and **✕**. Dismissing it swaps in a small "Dla rodziców" pill at top-right.                                                                                                   | Parent                 |
+| Header               | `<header class="site-header">`                                                 | Left: wordless **sun brand mark** (`SunMark`, a `<button>`; 3 s hold opens the parent gate). Right: optional **hourglass** (only when a playtime limit is set), **mute icon + "Zawsze bez dźwięku"**, and the **⚙ gear** button. The name is intentionally not repeated here because the `<h1>` carries it. | Parent                 |
+| Introduction         | `<section class="introduction">` (`top: 13.5%`, `pointer-events: none`)        | Decorative leaf flourish, `<h1>` **Mały pociąg _Artura_** in Fraunces (serif) with the accent on _Artura_, and `.intro-subtitle` showing the current **Maszynista** and **Stacja**. The subtitle is the only header text that changes during play.                                                           | No                     |
+| Landscape            | `<div class="landscape">` (`inset: 27% 0 135px`, `pointer-events: none`)       | The full SVG scene from `components/illustration/`: sky and celestial bodies, crossfading scenery, parallax trees, station, railway, train with three carriages, foreground meadow, weather particles. Only the active and crossfading landscapes are mounted.                                               | No                     |
+| Journey invitation   | `<section class="journey-invitation">` (`bottom: max(60px, safe-area + 50px)`) | `.journey-message` (narrative line from `journeyMessage()`), `.journey-teaser` (next stop and friend, only while waiting), the `.keyboard-invitation` row **Naciśnij / Dotknij → `[Enter ↵]` → i ruszajmy w drogę**, and `.patient-note` ("Pociąg poczeka. Mamy czas.").                                     | **Child (Enter only)** |
+| Footer               | `<footer class="page-footer">`                                                 | Two muted taglines with a leaf and a heart. Hidden on short landscape phones.                                                                                                                                                                                                                                | No                     |
+| Overlays             | `RestScreen`, `ParentModal` (native `<dialog>`)                                | Rest screen (`z-index: 60`) and parent modal (`z-index: 50`) sit above the noise layer (`z-index: 10`). Both trap focus and restore it on close.                                                                                                                                                             | Parent                 |
+
+### The Enter keycap
+
+The keycap is a real `<button class="enter-key">`, styled as a physical key: cream face, 1 px olive border, a thicker 4 px bottom border plus a `0 3px 0` shadow for depth, and a `translateY(2px)` press state that shortens the bottom border. It carries the label **Enter** plus a return-arrow glyph.
+
+| Context                                   | Size                                                       | Prompt word  |
+| ----------------------------------------- | ---------------------------------------------------------- | ------------ |
+| Pointer devices                           | 122 × 50 px, 16 px DM Sans 600                             | **Naciśnij** |
+| Touch (`hover: none` + `pointer: coarse`) | `min(280px, 72vw)` × 74 px, 23 px text, 7 px bottom border | **Dotknij**  |
+| Short landscape touch (≤ 560 px tall)     | `min(240px, 44vw)` × 52 px                                 | Dotknij      |
+
+It suppresses text selection, tap highlight, double-tap zoom and the long-press context menu. While the train is moving it stays in the DOM (so focus never jumps) but is marked `aria-disabled` and the whole invitation row fades to 45% opacity (`.is-travelling`). While waiting (`.is-ready`) it idles with a slow `key-presence` breathe animation. Clicks with `event.detail === 0` are ignored so a keyboard `Enter` on the focused button is not counted twice.
+
+### State classes on `<main class="little-world">`
+
+| Class / attribute                                                                                      | Set when                                                         | Visual effect                                                                   |
+| ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `.is-moving`                                                                                           | phase is departing / travelling / arriving / touring / returning | Starts wheel spin, pistons, parallax trees, rail sleepers and foreground meadow |
+| `.is-paused`                                                                                           | tab hidden                                                       | Pauses **every** CSS animation (`animation-play-state: paused` on `*`)          |
+| `.time-near-limit`                                                                                     | ≥ 80% of the playtime limit used, not yet resting                | Dims the landscape to 86% opacity over 1.2 s; nothing else changes              |
+| `.is-ready` / `.is-travelling`                                                                         | on `.journey-invitation`                                         | Full vs. 45% opacity of the invitation row                                      |
+| `data-phase`, `data-passengers`, `data-landscape`, `data-journeys`, `data-weather`, `data-time-of-day` | always                                                           | Test hooks and CSS hooks; no visual effect on their own                         |
+
+### Theming contract (CSS variables)
+
+`useAtmosphere` writes these onto `.little-world` at up to 24 fps; the whole page reads them. New UI should use them instead of literal colours.
+
+| Variable                                                            | Drives                                               |
+| ------------------------------------------------------------------- | ---------------------------------------------------- |
+| `--sky-top`, `--sky-bottom`                                         | Page background gradient                             |
+| `--ink`                                                             | Heading, journey message, keycap text                |
+| `--muted`                                                           | Subtitle, teaser, patient note, footer, header notes |
+| `--accent`                                                          | _Artura_ in the title, footer heart                  |
+| `--ground`                                                          | Lower ground fill and the page's bottom fade         |
+| `--window`                                                          | Lit windows in cottages and the station              |
+| `--cloud`, `--cloud-opacity`                                        | Cloud fill and fog-thinning                          |
+| `--sun-x/-y/-opacity`, `--moon-x/-y/-opacity`, `--stars-opacity`    | Celestial positions and visibility                   |
+| `--rain-opacity`, `--snow-opacity`, `--fog-opacity`, `--night-veil` | Weather layers and the night tint                    |
+
+Day and night text colours switch rather than blend, so contrast stays ≥ 4.5:1 at dusk and dawn.
+
+### Stacking order
+
+`landscape`/`introduction`/`journey-invitation` (z 2) → `site-header` (z 3) → noise overlay `::after` (z 10) → `parent-value-strip` / pill (z 20) → `ParentModal` (z 50) → `RestScreen` (z 60). Keep new chrome below 10 so it stays under the paper grain, and keep anything that must be tappable above it.
+
+### Responsive behaviour
+
+| Breakpoint                           | What changes                                                                                                     |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| ≥ 1800 px                            | Slightly taller landscape band, more bottom spacing                                                              |
+| ≤ 820 px tall (desktop)              | Compact header, smaller title and keycap                                                                         |
+| ≤ 1000 px                            | Title wraps; landscape widened past the edges (`inset: 32% -3% 160px`) so the train stays centred                |
+| 481–1000 px portrait                 | _Artura_ drops to its own line; scenery stretched vertically                                                     |
+| ≤ 480 px                             | Scenery stretched further; the "Zawsze bez dźwięku" label is hidden, leaving only its icon                       |
+| ≤ 600 px tall (desktop)              | Flourish hidden, everything tightened; ≤ 450 px also hides the patient note                                      |
+| Touch                                | Big keycap, "Dotknij", invitation row wraps, footer hidden                                                       |
+| Touch ≤ 560 px tall (phone sideways) | Value strip, subtitle, teaser, patient note and footer hidden; title shrinks; `min-height: 0` so nothing scrolls |
+| `prefers-reduced-motion`             | All keyframe animations collapse; sky still changes colour                                                       |
+
+Horizontal insets use `env(safe-area-inset-left/right)` on the root and `env(safe-area-inset-bottom)` on the invitation row and footer.
+
+### Motion vocabulary
+
+Every animation is slow and transform- or opacity-only. On load the header, intro, landscape and invitation fade up in a staggered sequence (`appear`, `intro-appear`, `landscape-appear`). While moving: wheels 5 s, pistons 2.5 s, sleepers 1.2 s, foreground meadow 24 s, parallax trees 48 s, clouds 56 s. The journey message re-mounts (`key={...}`) so each new line fades in. Nothing bounces, flashes or plays faster than ~1 s per cycle.
+
+### Adding to the home page safely
+
+1. Put non-interactive decoration inside the SVG scene or `.introduction`, both already `pointer-events: none`.
+2. Put any new control behind the parent gate (`ParentModal`), never on the main surface.
+3. Colour it with the variables above; test it at `--day-hour` noon and 1 a.m.
+4. Check it against `.is-paused` (must stop), `.time-near-limit` (must not add urgency) and reduced motion.
+5. Verify the sideways-phone breakpoint still fits without scrolling (`tests/journey.spec.ts` asserts this).
+
 ## Run Locally
 
 ```sh
