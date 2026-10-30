@@ -78,6 +78,9 @@ export function useModalFocus<T extends HTMLDialogElement>(
       dialog.removeEventListener("keydown", onKeyDown);
       dialog.removeEventListener("cancel", onCancelEvent);
       if (dialog.open) dialog.close();
+      // Never pull focus out of another dialog that is still open (for example
+      // the rest screen, which stays modal while the parent panel closes).
+      if (document.querySelector("dialog[open]")) return;
       const fallback = document.querySelector<HTMLElement>(".enter-key");
       const canRestoreFocus =
         previousFocus?.isConnected &&

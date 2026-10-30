@@ -147,7 +147,13 @@ export function Carriage({
   );
 }
 
-export function Locomotive({ driver }: { driver: AnimalKind }) {
+export function Locomotive({
+  driver,
+  driverOutside = false,
+}: {
+  driver: AnimalKind;
+  driverOutside?: boolean;
+}) {
   return (
     <g className="locomotive">
       <g className="steam" fill="#fffcf3">
@@ -199,7 +205,11 @@ export function Locomotive({ driver }: { driver: AnimalKind }) {
         </clipPath>
       </defs>
       <g clipPath="url(#driver-window)">
-        <g transform="translate(680 388) scale(.65)">
+        {/* Opacity only here: a CSS transform would replace the attribute transform. */}
+        <g
+          className={`cab-driver ${driverOutside ? "is-out" : ""}`}
+          transform="translate(680 388) scale(.65)"
+        >
           <Animal kind={driver} conductor waving={false} />
         </g>
       </g>

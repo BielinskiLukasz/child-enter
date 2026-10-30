@@ -18,6 +18,7 @@ import {
   createInitialJourney,
   currentLandscape,
   currentStop,
+  driverIsOutside,
   generateSessionPlan,
   journeyMessage,
   journeyReducer,
@@ -244,6 +245,7 @@ export default function App() {
       data-journeys={journey.journeys}
       data-initial-weather={initialConditions.weather}
       data-initial-hour={initialConditions.hour.toFixed(4)}
+      data-driver={driverIsOutside(journey) ? "outside" : "cab"}
       aria-label="Mały pociąg Artura. Spokojna zabawa sterowana klawiszem Enter lub przyciskiem na ekranie."
     >
       {/* Screen Reader Live Region for Accessibility */}

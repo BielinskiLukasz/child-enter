@@ -130,6 +130,8 @@ test("reducer transitions are deterministic and reset preserves settings and jou
 test("Enter is the main input, held keys are ignored, and a full journey can be replayed", async ({
   page,
 }) => {
+  // Simulates a long journey under a fake clock, so allow extra wall time.
+  test.slow();
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.clock.install();
@@ -191,6 +193,8 @@ test.describe("on a touch phone without a keyboard", () => {
   test("the visible Enter button runs the whole journey by finger", async ({
     page,
   }) => {
+    // A whole round by finger under a fake clock; allow extra wall time.
+    test.slow();
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
     await page.clock.install();
@@ -373,6 +377,8 @@ test.describe("parent controls and escape hatch", () => {
   test("active playtime limit opens a rest screen; parent can approve one continuation", async ({
     page,
   }) => {
+    // Simulates ~2 minutes of playtime under a fake clock, so allow extra wall time.
+    test.slow();
     await page.clock.install();
     await page.goto("/");
     await page.keyboard.press("Escape");
@@ -493,4 +499,107 @@ test("the single HTML file works offline without any remote requests", async ({
   expect(remoteRequests).toEqual([]);
   expect(errors).toEqual([]);
   await context.close();
+});
+
+test.describe("the driver at Artur's station", () => {
+  test("steps out onto the platform and back into the cab", async ({
+    page,
+  }) => {
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page.clock.install();
+    await page.goto("/");
+    const world = page.locator("main");
+    const platform = page.locator(".platform-driver");
+    const cab = page.locator(".cab-driver");
+
+    // Before the first journey the driver waits on the platform, cab empty.
+    await expect(world).toHaveAttribute("data-driver", "outside");
+    await expect(platform).toHaveCount(1);
+    await expect(platform).toHaveCSS("opacity", "1");
+    await expect(cab).toHaveCSS("opacity", "0");
+
+    // Leaving: the driver climbs back into the cab.
+    await page.keyboard.press("Enter");
+    await expect(world).toHaveAttribute("data-driver", "cab");
+    await expect(cab).toHaveCSS("opacity", "1");
+    await expect(platform).toHaveCSS("opacity", "0");
+    // The platform figure is gone with the station while under way.
+    await advance(page, "travelling");
+    await expect(platform).toHaveCount(0);
+    await expect(cab).toHaveCSS("opacity", "1");
+    expect(errors).toEqual([]);
+  });
+
+  test("stays in the cab at every stop that is not Artur's station", async ({
+    page,
+  }) => {
+    await page.clock.install();
+    await page.goto("/");
+    // Wait for the first render so the key listener is attached.
+    await expect(page.locator("main")).toHaveAttribute("data-phase", "waiting");
+    const world = page.locator("main");
+
+    for (let friend = 1; friend <= 3; friend++) {
+      await page.keyboard.press("Enter");
+      await collectFriend(page, friend);
+      // Parked at a destination station: still driving, no one steps out.
+      await expect(world).toHaveAttribute("data-driver", "cab");
+      await expect(page.locator(".platform-driver")).toHaveCount(0);
+      await expect(page.locator(".cab-driver")).toHaveCSS("opacity", "1");
+    }
+  });
+
+  test("steps out again when the journey returns home", async ({ page }) => {
+    // A whole round under a fake clock; allow extra wall time.
+    test.slow();
+    await page.clock.install();
+    await page.goto("/");
+    // Wait for the first render so the key listener is attached.
+    await expect(page.locator("main")).toHaveAttribute("data-phase", "waiting");
+    const world = page.locator("main");
+    const platform = page.locator(".platform-driver");
+    const cab = page.locator(".cab-driver");
+
+    for (let friend = 1; friend <= 3; friend++) {
+      await page.keyboard.press("Enter");
+      await collectFriend(page, friend);
+    }
+    await page.keyboard.press("Enter");
+    await advance(page, "departing");
+    // On the scenic tour the driver stays in the cab the whole way.
+    for (let scene = 0; scene < 3; scene++) {
+      await advance(page, "touring");
+      await expect(world).toHaveAttribute("data-driver", "cab");
+    }
+    await advance(page, "returning");
+    await advance(page, "unboarding");
+    // Home: everyone gets off, driver included.
+    await expect(world).toHaveAttribute("data-driver", "outside");
+    await expect(platform).toHaveCSS("opacity", "1");
+    await expect(cab).toHaveCSS("opacity", "0");
+  });
+
+  test("still changes place with reduced motion, just without the climb", async ({
+    browser,
+  }) => {
+    const context = await browser.newContext({ reducedMotion: "reduce" });
+    const page = await context.newPage();
+    await page.clock.install();
+    await page.goto("/");
+    // Wait for the first render so the key listener is attached.
+    await expect(page.locator("main")).toHaveAttribute("data-phase", "waiting");
+    const world = page.locator("main");
+    await expect(world).toHaveAttribute("data-driver", "outside");
+    await expect(page.locator(".platform-driver")).toHaveCSS("opacity", "1");
+    // The climb is dropped, so the swap is effectively instant.
+    const climb = await page
+      .locator(".platform-driver")
+      .evaluate((el) => getComputedStyle(el).transitionDuration);
+    expect(parseFloat(climb)).toBeLessThan(0.01);
+    await page.keyboard.press("Enter");
+    await expect(world).toHaveAttribute("data-driver", "cab");
+    await expect(page.locator(".cab-driver")).toHaveCSS("opacity", "1");
+    await context.close();
+  });
 });

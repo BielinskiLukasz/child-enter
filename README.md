@@ -12,11 +12,11 @@ A quiet cause-and-effect activity that encourages watching, waiting, and discove
 
 The weather and time of day are randomized upon session start and evolve dynamically along the route right from the first journey:
 
-1. **Home Station:** The train waits at _Stacja Artura_ with a randomly selected animal conductor wearing a conductor's cap (chosen from 11 animals: Króliczek, Lisek, Miś, Jeżyk, Sówka, Wiewiórka, Kotek, Piesek, Żabka, Borsuk, Jelonek).
-2. **First Pickup:** Pressing `Enter` (or tapping the on-screen button) starts a slow trip to the first destination station, where the first passenger boards a carriage and waves.
+1. **Home Station:** The train waits at _Stacja Artura_ with a randomly selected animal conductor wearing a conductor's cap (chosen from 11 animals: Króliczek, Lisek, Miś, Jeżyk, Sówka, Wiewiórka, Kotek, Piesek, Żabka, Borsuk, Jelonek). The conductor stands on the platform beside the locomotive and waves, and the cab is empty.
+2. **First Pickup:** Pressing `Enter` (or tapping the on-screen button) makes the conductor climb back into the cab before the train starts a slow trip to the first destination station, where the first passenger boards a carriage and waves.
 3. **Subsequent Pickups:** The train waits indefinitely at each stop. Pressing `Enter` advances to the next two stations, picking up two more unique animal friends so all three carriages are full.
 4. **Scenic Tour:** With all passengers aboard, the next `Enter` begins a scenic tour through three randomized picturesque landscapes (chosen from Leśna Polana, Słoneczna Wieś, Górska Dolina, Nadbrzeże Rzeki, Brzozowy Gaj, Śnieżna Polana, and Szepcząca Łąka) under smooth sky and weather transitions.
-5. **Return & Farewell:** The train returns to _Stacja Artura_, the friends wave goodbye and leave their carriages, and a fresh journey with new animals and stations is prepared.
+5. **Return & Farewell:** The train returns to _Stacja Artura_, the friends wave goodbye and leave their carriages, and the conductor steps back out onto the platform. A fresh journey with new animals and stations is prepared.
 6. **Rest Screen:** After $N$ complete rounds (default: 4, or triggered manually via parent controls), a peaceful _"Pora na odpoczynek"_ sleeping-moon screen offers a calm transition to rest.
 
 ## Controls & Rules
@@ -132,6 +132,7 @@ It suppresses text selection, tap highlight, double-tap zoom and the long-press 
 | `.is-paused`                                                                                           | tab hidden                                                       | Pauses **every** CSS animation (`animation-play-state: paused` on `*`)          |
 | `.time-near-limit`                                                                                     | ≥ 80% of the playtime limit used, not yet resting                | Dims the landscape to 86% opacity over 1.2 s; nothing else changes              |
 | `.is-ready` / `.is-travelling`                                                                         | on `.journey-invitation`                                         | Full vs. 45% opacity of the invitation row                                      |
+| `data-driver` | always | `outside` or `cab`. When `outside`, the conductor stands on the platform (`.platform-driver` fades and settles down from cab height) and the cab figure (`.cab-driver`) fades out; `cab` reverses it. Only ever `outside` at _Stacja Artura_ while parked. |
 | `data-phase`, `data-passengers`, `data-landscape`, `data-journeys`, `data-weather`, `data-time-of-day` | always                                                           | Test hooks and CSS hooks; no visual effect on their own                         |
 
 ### Theming contract (CSS variables)

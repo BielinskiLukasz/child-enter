@@ -1,8 +1,13 @@
-import { ALL_LOCATIONS, type JourneyState } from "../../game";
+import {
+  ALL_LOCATIONS,
+  driverIsOutside,
+  type JourneyState,
+} from "../../game";
 import { Animal } from "./Animal";
 
 export function Station({ journey }: { journey: JourneyState }) {
   const { phase, stop } = journey;
+  const driverOutside = driverIsOutside(journey);
   if (phase === "travelling" || phase === "touring") return null;
 
   const arriving = phase === "arriving" || phase === "returning";
@@ -152,6 +157,15 @@ export function Station({ journey }: { journey: JourneyState }) {
         stroke="#7e936a"
         strokeWidth="1.5"
       />
+      {/* The driver steps out at Artur's station only. Always rendered so the
+          climb in/out transitions play in both directions. */}
+      {stop === 0 && (
+        <g transform="translate(398 424) scale(.5)">
+          <g className={`platform-driver ${driverOutside ? "is-out" : ""}`}>
+            <Animal kind={journey.plan.driver} conductor />
+          </g>
+        </g>
+      )}
       {waitingPassenger && (phase === "arriving" || phase === "boarding") && (
         <g transform="translate(402 422) scale(.48)">
           <g

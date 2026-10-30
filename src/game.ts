@@ -349,6 +349,19 @@ export function journeyReducer(
   }
 }
 
+/**
+ * The driver stays in the cab everywhere except Artur's own station, where
+ * they step out onto the platform while the train is parked (before the first
+ * journey, and again when everyone says goodbye). Pure: derived from state only.
+ */
+export function driverIsOutside(state: JourneyState): boolean {
+  return (
+    state.stop === 0 &&
+    !state.isTour &&
+    (state.phase === "waiting" || state.phase === "unboarding")
+  );
+}
+
 export function currentLandscape(state: JourneyState): Landscape {
   if (state.phase === "touring") {
     return state.plan.tour[state.tourIndex] ?? "forest";

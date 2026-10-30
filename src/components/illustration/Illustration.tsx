@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   ALL_ANIMALS,
   ALL_LOCATIONS,
+  driverIsOutside,
   type JourneyState,
   type Landscape,
 } from "../../game";
@@ -126,7 +127,10 @@ export function Illustration({
         {[2, 1, 0].map((index) => (
           <Carriage key={index} index={index} journey={journey} />
         ))}
-        <Locomotive driver={journey.plan.driver} />
+        <Locomotive
+          driver={journey.plan.driver}
+          driverOutside={driverIsOutside(journey)}
+        />
       </g>
       <MeadowDetails />
       <WeatherEffects />

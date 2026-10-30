@@ -89,6 +89,43 @@
   opacity: 0;
 }
 
+/* The driver climbing out of the cab at Artur's station.
+   Starts up at cab height and settles onto the platform, so the move reads as
+   stepping down out of the locomotive rather than appearing. */
+.platform-driver {
+  opacity: 0;
+  transform: translateY(-58px);
+  transition:
+    opacity 1.15s ease 0.3s,
+    transform 1.25s cubic-bezier(0.22, 0.61, 0.36, 1) 0.3s;
+}
+
+.platform-driver.is-out {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0s;
+}
+
+.cab-driver {
+  opacity: 1;
+  transition: opacity 0.85s ease;
+}
+
+/* Delayed so the driver is already on the platform before the cab empties. */
+.cab-driver.is-out {
+  opacity: 0;
+  transition-delay: 0.35s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Keep the change of place, drop the movement. */
+  .platform-driver,
+  .cab-driver {
+    transition-duration: 0.001ms !important;
+    transition-delay: 0s !important;
+  }
+}
+
 .is-paused *,
 .is-paused *::before,
 .is-paused *::after {
