@@ -1,5 +1,17 @@
 import { useLayoutEffect, useRef, useState, type FormEvent } from "react";
-import type { JourneySettings, JourneyState } from "../game";
+import {
+  ALL_ANIMALS,
+  ALL_LOCATIONS,
+  ANIMAL_KEYS,
+  DESTINATION_LOCATIONS,
+  defaultPlanner,
+  type AnimalKind,
+  type JourneyPlanner,
+  type JourneySettings,
+  type JourneyState,
+  type Landscape,
+  type PlannedPick,
+} from "../game";
 import { useModalFocus } from "../hooks/useModalFocus";
 
 function makeParentQuestion() {
@@ -122,6 +134,10 @@ export function ParentModal({
           </form>
         ) : (
           <div className="parent-settings-content space-y-5">
+            <PlannerSection
+              planner={settings.planner}
+              onPlannerChange={(planner) => onUpdateSettings({ planner })}
+            />
             <section className="parent-section">
               <h3 className="parent-section-title">Szybkie działania</h3>
               <div className="flex flex-wrap gap-2.5">
@@ -285,5 +301,153 @@ export function ParentModal({
         )}
       </div>
     </dialog>
+  );
+}
+
+/**
+ * Lets a parent choose, for the NEXT journey, which animal drives and rides
+ * each carriage and which three stations the train visits. "random" leaves a
+ * slot to chance; values already chosen in another slot are offered disabled so
+ * the same friend or stop can never be booked twice.
+ */
+function PlannerSection({
+  planner,
+  onPlannerChange,
+}: {
+  planner: JourneyPlanner;
+  onPlannerChange: (planner: JourneyPlanner) => void;
+}) {
+  const setDriver = (value: PlannedPick<AnimalKind>) =>
+    onPlannerChange({ ...planner, driver: value });
+  const setPassenger = (index: 0 | 1 | 2, value: PlannedPick<AnimalKind>) => {
+    const passengers = [...planner.passengers] as typeof planner.passengers;
+    passengers[index] = value;
+    onPlannerChange({ ...planner, passengers });
+  };
+  const setStation = (index: 0 | 1 | 2, value: PlannedPick<Landscape>) => {
+    const stations = [...planner.stations] as typeof planner.stations;
+    stations[index] = value;
+    onPlannerChange({ ...planner, stations });
+  };
+
+  // A value is "taken" when some OTHER slot already uses it.
+  const animalTakenBy =
+    (selfIndex: number) => (value: PlannedPick<AnimalKind>) => {
+      if (value === "random") return false;
+      const slots = [planner.driver, ...planner.passengers];
+      return slots.some((slot, i) => i !== selfIndex && slot === value);
+    };
+  const stationTakenBy =
+    (selfIndex: number) => (value: PlannedPick<Landscape>) => {
+      if (value === "random") return false;
+      return planner.stations.some(
+        (slot, i) => i !== selfIndex && slot === value,
+      );
+    };
+
+  return (
+    <section className="parent-section">
+      <h3 className="parent-section-title">Plan podróży</h3>
+      <p className="parent-label mb-2">
+        Wybierz, kto poprowadzie pociąg i kto pojedzie, oraz do jakich trzech
+        stacji zajedzie. Wybory zadziałają od kolejnej podróży (po powrocie do
+        domu lub po „Nowa podróż”).
+      </p>
+
+      <label className="parent-label" htmlFor="planner-driver">
+        Maszynista
+      </label>
+      <select
+        id="planner-driver"
+        className="parent-select"
+        value={planner.driver}
+        onChange={(e) => setDriver(e.target.value as PlannedPick<AnimalKind>)}
+      >
+        <option value="random">Losowo</option>
+        {ANIMAL_KEYS.map((kind) => (
+          <option key={kind} value={kind} disabled={animalTakenBy(0)(kind)}>
+            {ALL_ANIMALS[kind].name}
+          </option>
+        ))}
+      </select>
+
+      <div className="mt-3 grid grid-cols-3 gap-2">
+        {planner.passengers.map((pick, index) => (
+          <div key={index}>
+            <label
+              className="parent-label"
+              htmlFor={`planner-passenger-${index}`}
+            >
+              Pasażer {index + 1}
+            </label>
+            <select
+              id={`planner-passenger-${index}`}
+              className="parent-select"
+              value={pick}
+              onChange={(e) =>
+                setPassenger(
+                  index as 0 | 1 | 2,
+                  e.target.value as PlannedPick<AnimalKind>,
+                )
+              }
+            >
+              <option value="random">Losowo</option>
+              {ANIMAL_KEYS.map((kind) => (
+                <option
+                  key={kind}
+                  value={kind}
+                  disabled={animalTakenBy(index + 1)(kind)}
+                >
+                  {ALL_ANIMALS[kind].name}
+                </option>
+              ))}
+            </select>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-3 grid grid-cols-3 gap-2">
+        {planner.stations.map((pick, index) => (
+          <div key={index}>
+            <label
+              className="parent-label"
+              htmlFor={`planner-station-${index}`}
+            >
+              Stacja {index + 1}
+            </label>
+            <select
+              id={`planner-station-${index}`}
+              className="parent-select"
+              value={pick}
+              onChange={(e) =>
+                setStation(
+                  index as 0 | 1 | 2,
+                  e.target.value as PlannedPick<Landscape>,
+                )
+              }
+            >
+              <option value="random">Losowo</option>
+              {DESTINATION_LOCATIONS.map((location) => (
+                <option
+                  key={location}
+                  value={location}
+                  disabled={stationTakenBy(index)(location)}
+                >
+                  {ALL_LOCATIONS[location].name}
+                </option>
+              ))}
+            </select>
+          </div>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        className="parent-action-btn mt-3"
+        onClick={() => onPlannerChange(defaultPlanner)}
+      >
+        Wszystko losowo
+      </button>
+    </section>
   );
 }

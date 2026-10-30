@@ -156,15 +156,6 @@ export const PHASE_DURATION: Record<Exclude<Phase, "waiting">, number> = {
   unboarding: 2400,
 };
 
-export function shuffleArray<T>(array: T[], random = Math.random): T[] {
-  const result = [...array];
-  for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(random() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
-  return result;
-}
-
 export interface SessionPlan {
   driver: AnimalKind;
   passengers: AnimalKind[];
@@ -172,35 +163,87 @@ export interface SessionPlan {
   tour: Landscape[];
 }
 
-export function generateSessionPlan(random = Math.random): SessionPlan {
-  const shuffledAnimals = shuffleArray(ANIMAL_KEYS, random);
-  const driver = shuffledAnimals[0];
-  const passengers = [
-    shuffledAnimals[1],
-    shuffledAnimals[2],
-    shuffledAnimals[3],
-  ];
+export type PlannedPick<T> = T | "random";
 
-  const shuffledDestinations = shuffleArray(DESTINATION_LOCATIONS, random);
-  const selectedDestinations = [
-    shuffledDestinations[0],
-    shuffledDestinations[1],
-    shuffledDestinations[2],
+/** A parent's plan for the next journey. "random" leaves a slot to chance. */
+export interface JourneyPlanner {
+  driver: PlannedPick<AnimalKind>;
+  passengers: [
+    PlannedPick<AnimalKind>,
+    PlannedPick<AnimalKind>,
+    PlannedPick<AnimalKind>,
   ];
+  stations: [
+    PlannedPick<Landscape>,
+    PlannedPick<Landscape>,
+    PlannedPick<Landscape>,
+  ];
+}
+
+export const defaultPlanner: JourneyPlanner = {
+  driver: "random",
+  passengers: ["random", "random", "random"],
+  stations: ["random", "random", "random"],
+};
+
+/**
+ * Builds the next journey's plan. Explicit picks win; the remaining slots are
+ * filled with random values that are guaranteed not to repeat an earlier slot
+ * (defensively, an explicit pick that collides with an earlier slot is treated
+ * as "random"). Pure given the same `random` and `planner`.
+ */
+export function generateSessionPlan(
+  random = Math.random,
+  planner: JourneyPlanner = defaultPlanner,
+): SessionPlan {
+  /**
+   * Assigns one distinct value per slot. Explicit picks win, in order. A
+   * "random" slot is filled from the values that are (a) not already used and
+   * (b) not still needed by a LATER explicit slot, so a random fill can never
+   * steal a value a following pick was asking for. A pick that collides with an
+   * earlier assignment is treated as "random".
+   */
+  const assign = <T>(
+    picks: readonly PlannedPick<T>[],
+    all: readonly T[],
+  ): T[] => {
+    const used = new Set<T>();
+    const result: T[] = [];
+    for (let i = 0; i < picks.length; i++) {
+      const pick = picks[i];
+      const reservedByLater = new Set(
+        picks.slice(i + 1).filter((later) => {
+          const laterPick = later as PlannedPick<T>;
+          return laterPick !== "random" && !used.has(laterPick as T);
+        }) as T[],
+      );
+      if (pick !== "random" && !used.has(pick as T)) {
+        result.push(pick as T);
+        used.add(pick as T);
+        continue;
+      }
+      const pool = all.filter(
+        (value) => !used.has(value) && !reservedByLater.has(value),
+      );
+      const choice = pool[Math.floor(random() * pool.length)];
+      result.push(choice);
+      used.add(choice);
+    }
+    return result;
+  };
+
+  const [driver, ...passengers] = assign<AnimalKind>(
+    [planner.driver, ...planner.passengers],
+    ANIMAL_KEYS,
+  );
+  const tour = assign<Landscape>(planner.stations, DESTINATION_LOCATIONS);
 
   const stops: StopDefinition[] = [
     ALL_LOCATIONS.home,
-    ALL_LOCATIONS[selectedDestinations[0]],
-    ALL_LOCATIONS[selectedDestinations[1]],
-    ALL_LOCATIONS[selectedDestinations[2]],
+    ...tour.map((location) => ALL_LOCATIONS[location]),
   ];
 
-  return {
-    driver,
-    passengers,
-    stops,
-    tour: selectedDestinations,
-  };
+  return { driver, passengers, stops, tour };
 }
 
 export interface JourneySettings {
@@ -208,6 +251,8 @@ export interface JourneySettings {
   timeOverride: "auto" | "day" | "night" | "dawn" | "dusk";
   roundsBeforeRest: number; // e.g. 4 rounds before rest screen, 0 = infinite
   playtimeLimitMinutes: number; // 0 = no limit
+  /** Who and where for the NEXT journey; changes apply from its start. */
+  planner: JourneyPlanner;
 }
 
 export const defaultSettings: JourneySettings = {
@@ -215,6 +260,7 @@ export const defaultSettings: JourneySettings = {
   timeOverride: "auto",
   roundsBeforeRest: 4,
   playtimeLimitMinutes: 20,
+  planner: defaultPlanner,
 };
 
 export interface JourneyState {

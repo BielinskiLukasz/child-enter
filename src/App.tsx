@@ -176,10 +176,16 @@ export default function App() {
   const advancePhase = useCallback(() => {
     dispatch(
       journey.phase === "unboarding"
-        ? { type: "ADVANCE", nextPlan: generateSessionPlan() }
+        ? {
+            type: "ADVANCE",
+            nextPlan: generateSessionPlan(
+              Math.random,
+              journey.settings.planner,
+            ),
+          }
         : { type: "ADVANCE" },
     );
-  }, [journey.phase]);
+  }, [journey.phase, journey.settings.planner]);
   const clock = useJourneyClock(journey, advancePhase);
   const initialConditions = useAtmosphere(journey, clock, world);
   const activePlaytimeMs = useActivePlaytime(visible && !journey.isResting);
@@ -216,7 +222,10 @@ export default function App() {
   };
 
   const handleResetSession = () => {
-    dispatch({ type: "RESET_SESSION", plan: generateSessionPlan() });
+    dispatch({
+      type: "RESET_SESSION",
+      plan: generateSessionPlan(Math.random, journey.settings.planner),
+    });
   };
 
   const handleUpdateSettings = (newSettings: Partial<JourneySettings>) => {

@@ -127,6 +127,42 @@ test("reducer transitions are deterministic and reset preserves settings and jou
   expect(firstResult.plan).toEqual(generateSessionPlan(() => 0.2));
 });
 
+test("the planner honours a parent's chosen conductor, passengers and stations", () => {
+  const plan = generateSessionPlan(() => 0.42, {
+    driver: "fox",
+    passengers: ["bear", "random", "owl"],
+    stations: ["mountains", "random", "river"],
+  });
+
+  // Chosen slots are honoured exactly.
+  expect(plan.driver).toBe("fox");
+  expect(plan.passengers[0]).toBe("bear");
+  expect(plan.passengers[2]).toBe("owl");
+  expect(plan.tour[0]).toBe("mountains");
+  expect(plan.tour[2]).toBe("river");
+
+  // "random" slots are filled but never repeat an earlier slot.
+  const animals = [plan.driver, ...plan.passengers];
+  expect(new Set(animals).size).toBe(animals.length);
+  expect(new Set(plan.tour).size).toBe(plan.tour.length);
+  expect(plan.tour).not.toContain("home");
+
+  // The stop list follows the tour and always begins at home.
+  expect(plan.stops[0].landscape).toBe("home");
+  expect(plan.stops.slice(1).map((stop) => stop.landscape)).toEqual(plan.tour);
+});
+
+test("the planner never duplicates, even when explicit picks collide", () => {
+  const plan = generateSessionPlan(() => 0.3, {
+    driver: "fox",
+    passengers: ["fox", "fox", "random"], // two collide with the driver
+    stations: ["river", "river", "random"], // two collide with each other
+  });
+  const animals = [plan.driver, ...plan.passengers];
+  expect(new Set(animals).size).toBe(4);
+  expect(new Set(plan.tour).size).toBe(3);
+});
+
 test("Enter is the main input, held keys are ignored, and a full journey can be replayed", async ({
   page,
 }) => {
@@ -398,6 +434,46 @@ test.describe("parent controls and escape hatch", () => {
     await expect(page.locator(".rest-screen-overlay")).toHaveCount(0);
     await page.clock.runFor(2_000);
     await expect(page.locator(".rest-screen-overlay")).toBeVisible();
+  });
+
+  test("a planned conductor, passenger and station drive the next journey", async ({
+    page,
+  }) => {
+    await page.clock.install();
+    await page.goto("/");
+    const world = page.locator("main");
+    await expect(world).toHaveAttribute("data-phase", "waiting");
+
+    await page.keyboard.press("Escape");
+    await unlockParentGate(page);
+    await page.locator("#planner-driver").selectOption("fox");
+    await page.locator("#planner-passenger-0").selectOption("bear");
+    await page.locator("#planner-station-0").selectOption("mountains");
+
+    // A value already chosen elsewhere is offered disabled, so it can't be
+    // booked twice.
+    await expect(
+      page.locator("#planner-passenger-0 option[value=fox]"),
+    ).toBeDisabled();
+    await expect(
+      page.locator("#planner-station-1 option[value=mountains]"),
+    ).toBeDisabled();
+
+    // "Nowa podróż" restarts the journey with the planned roster and stops.
+    await page
+      .locator(".parent-action-btn")
+      .filter({ hasText: "Nowa podróż" })
+      .click();
+    await expect(page.locator(".intro-subtitle")).toContainText("Lisek");
+
+    // The first stop is the planned Górska Dolina (mountains), where Miś waits.
+    await page.keyboard.press("Enter");
+    await advance(page, "departing");
+    await advance(page, "travelling");
+    await expect(world).toHaveAttribute("data-landscape", "mountains");
+    await advance(page, "arriving");
+    await expect(page.locator(".journey-message")).toContainText("Miś");
+    await advance(page, "boarding");
   });
 });
 

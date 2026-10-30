@@ -38,7 +38,8 @@ The weather and time of day are randomized upon session start and evolve dynamic
 - **Parent Value Strip:** A subtle top banner informs supervising adults of the app's safety guarantees (`Bez dźwięku · Bez reklam · Bez internetu · Jedna interakcja · Nic nie wychodzi z urządzenia`).
 - **Parent Escape Hatch & Gate:** Long-pressing the sun brand mark for 3 seconds, clicking the gear icon (`⚙`), or pressing `Escape` opens a changing addition challenge. The answer is never revealed after a wrong attempt. This is a child-resistant convenience gate, not account authentication.
 - **Parent Settings:**
-  - Reset the session immediately with a newly randomized conductor, passengers, and station order.
+  - **Plan the next journey** ("Plan podróży"): choose which animal drives (Maszynista), which three animals ride the carriages (Pasażer 1–3), and which three stations the train visits (Stacja 1–3). Every slot defaults to _"Losowo"_ (random). A value already chosen in another slot is offered disabled, so no friend or stop can be booked twice; a random slot is filled from the remaining friends and never steals a value a later slot asked for. "Wszystko losowo" clears the plan. Picks apply from the **next** journey (after returning home or "Nowa podróż").
+  - Reset the session immediately with a newly randomized (or planned) conductor, passengers, and station order.
   - Trigger the _"Pora na odpoczynek"_ rest screen on demand or configure how many rounds occur before automatic rest. Waking the train requires passing the parent gate again.
   - Set an active, visible-session playtime limit (default: 20 minutes). An hourglass appears without a numeric countdown; at the limit the rest screen opens. A parent can approve one continuation from the gated settings.
   - Lock atmosphere overrides for soothing sessions (e.g. _Zawsze noc_, _Zawsze dzień_, _Cichy śnieg_, _Spokojny deszcz_, _Lekka mgła_).
@@ -205,7 +206,7 @@ The generated `dist/index.html` bundles the complete application, SVG illustrati
 ## Implementation
 
 - `src/App.tsx`: keyboard/touch handling, parent gate trigger, rest screen, and page layout.
-- `src/game.ts`: finite-state machine, session randomizer (11 animals, 8 locations), and Polish copy.
+- `src/game.ts`: finite-state machine, the journey planner (conductor / passengers / stations, with a no-repeat assignment) and the session randomizer (11 animals, 8 locations), and Polish copy.
 - `src/atmosphere.ts`: road-progress weather/time engine and seamless 24-hour colour interpolation.
 - `src/components/Atmosphere.tsx` & `src/atmosphere.css`: sun, moon, stars, and rain/snow/fog layers.
 - `src/components/illustration/`: modular SVG landscape, locomotive, carriages, parallax meadow, and animal art; only the active and crossfading landscapes are mounted.
