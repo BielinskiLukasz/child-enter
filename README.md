@@ -1,6 +1,6 @@
 # Mały pociąg
 
-A calm, silent Polish-language train activity for three-year-old boy. **Intended for supervised use by a young child.** This standalone activity uses only the Enter key or the large on-screen button, with no other interaction.
+A calm, silent Polish-language train activity for three-year-old child. **Intended for supervised use by a young child.** This standalone activity uses only the Enter key or the large on-screen button, with no other interaction.
 
 **Try it live: [Mały pociąg](https://bielinskilukasz.github.io/child-train/)**
 
